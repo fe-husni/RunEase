@@ -12,7 +12,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "sounds/*.mp3"],
+      includeAssets: ["favicon.ico", "apple-touch-icon.png", "logo/*.png", "sounds/*.mp3"],
       manifest: {
         name: "RunEase - Run Walk Timer",
         short_name: "RunEase",

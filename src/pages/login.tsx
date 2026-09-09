@@ -4,6 +4,7 @@ import { useUserStore } from "@/stores/userStore";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AppLogo } from "@/components/brand/app-logo";
 import { AlertTriangle, X } from "lucide-react";
 
 export default function LoginPage() {
@@ -28,6 +29,7 @@ export default function LoginPage() {
     <div className="mx-auto max-w-md py-8">
       <Card deco="blue">
         <div className="text-center">
+          <AppLogo size="lg" className="mb-4 justify-center" />
           <Badge variant="blue" className="mb-4">
             Auth
           </Badge>

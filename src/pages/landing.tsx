@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Section } from "@/components/layout/section";
+import { AppLogo } from "@/components/brand/app-logo";
 import { DotGrid, DecoCircle, DecoSquare } from "@/components/geometric/deco";
 import { Clock, Volume2, Smartphone, ArrowRight, Check, Zap, Trophy } from "lucide-react";
 
@@ -322,7 +323,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-b-4 border-bauhaus-black bg-bauhaus-black px-4 py-8 text-center text-white sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="font-black uppercase tracking-tighter text-xl">RunEase</div>
+          <AppLogo dark className="justify-center" />
           <p className="mt-2 text-sm opacity-60">© 2026 RunEase — Developed by Husni Mubarok</p>
         </div>
       </footer>

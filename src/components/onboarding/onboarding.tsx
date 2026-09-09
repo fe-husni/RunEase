@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DotGrid, DecoCircle, DecoSquare } from "@/components/geometric/deco";
-import { GeometricLogo } from "@/components/geometric/geometric-logo";
+import { AppLogo } from "@/components/brand/app-logo";
 import { Clock, Volume2, Bell, ShieldCheck, ChevronRight, X } from "lucide-react";
 
 const slides = [
@@ -76,7 +76,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
     <div className="fixed inset-0 z-[60] flex flex-col bg-bauhaus-gray">
       {/* Top bar */}
       <div className="flex items-center justify-between border-b-4 border-bauhaus-black bg-white px-4 py-3">
-        <GeometricLogo />
+        <AppLogo />
         <Button variant="ghost" size="sm" onClick={handleSkip} className="rounded-none">
           <X className="mr-1 h-4 w-4" /> Lewati
         </Button>

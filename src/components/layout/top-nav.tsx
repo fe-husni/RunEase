@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { GeometricLogo } from "@/components/geometric/geometric-logo";
+import { AppLogo } from "@/components/brand/app-logo";
 import { Avatar } from "@/components/ui/avatar";
 import { useUserStore } from "@/stores/userStore";
 
@@ -9,7 +9,7 @@ export function TopNav() {
   return (
     <nav aria-label="Navigasi utama" className="sticky top-0 z-50 flex items-center justify-between border-b-4 border-bauhaus-black bg-bauhaus-gray px-4 py-3 sm:px-6 lg:px-8">
       <Link to="/" aria-label="RunEase - beranda" className="flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bauhaus-blue">
-        <GeometricLogo />
+        <AppLogo />
       </Link>
       <div className="hidden items-center gap-6 font-bold uppercase tracking-wider text-sm md:flex">
         <Link to="/timer" className="transition-colors hover:text-bauhaus-red focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bauhaus-blue">
