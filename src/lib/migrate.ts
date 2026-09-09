@@ -44,7 +44,6 @@ export async function migrateGuestToUid(uid: string): Promise<{ migrated: number
 export async function migrateAnonLocalToUid(uid: string): Promise<{ migrated: number }> {
   // For anon -> Google link case, Firestore data already under same uid, just need to ensure local cache sync
   // Nothing to do for Firestore, but we can ensure localForage anon key cleared if exists
-  const anonKey = `sessions:${uid}`;
   const guest = (await localSessions.getItem<unknown[]>("sessions:guest")) ?? [];
   if (guest.length > 0) {
     return migrateGuestToUid(uid);

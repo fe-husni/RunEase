@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Section } from "@/components/layout/section";
 import { DotGrid, DecoCircle, DecoSquare } from "@/components/geometric/deco";
-import { Clock, Volume2, Smartphone, ArrowRight, Check, Zap, Heart, Trophy } from "lucide-react";
+import { Clock, Volume2, Smartphone, ArrowRight, Check, Zap, Trophy } from "lucide-react";
 
 export default function LandingPage() {
   return (

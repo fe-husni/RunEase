@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, X } from "lucide-react";
 
 export default function LoginPage() {
-  const { user, loading, error, clearError, signInWithGoogle, signInAnonymously } = useUserStore();
+  const { user, loading, error, clearError, signInWithGoogle } = useUserStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,14 +21,6 @@ export default function LoginPage() {
       await signInWithGoogle();
     } catch (e) {
       console.warn("[login] signInWithGoogle failed", e);
-    }
-  };
-
-  const handleAnonymousLogin = async () => {
-    try {
-      await signInAnonymously();
-    } catch (e) {
-      console.warn("[login] signInAnonymously failed", e);
     }
   };
 

@@ -1,5 +1,4 @@
 import { progressToNextLevel, xpForLevel, titleForLevel } from "@/lib/gamification";
-import { cn } from "@/lib/utils";
 
 export function LevelBar({ xp, level }: { xp: number; level: number }) {
   const progress = progressToNextLevel(xp, level);
