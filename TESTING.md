@@ -58,6 +58,11 @@ Keterbatasan yang dikomunikasikan ke user (bukan bug): iOS membatasi audio backg
 2. Login Google → modal "Gabungkan N sesi lokal?" → Ya → sesi tamu pindah ke cloud.
 3. Login akun sama di device kedua → History sama.
 
+> Known issue Android: Chrome kadang membuka chooser Google di tab terpisah sehingga
+> tab asal kembali tanpa hasil (panel `?debug=auth`: attempt ada + `success-null`).
+> App menampilkan panduan "Login tidak selesai…" + tombol Coba lagi (jangan diam).
+> Jangan tutup tab saat dialihkan ke Google.
+
 ### M6 — Export/Import (AC-04)
 1. Device A: Settings → Export → file `runease-export-YYYY-MM-DD.json` terdownload, valid JSON, ada `version:1`.
 2. Device B (login sama): Import → preview "N sesi, M preset" → Merge → History identik 100%.

@@ -51,6 +51,8 @@ function AuthDebugPanel() {
 
 export default function LoginPage() {
   const { user, loading, error, clearError, signInWithGoogle } = useUserStore();
+  const lastRedirect = useUserStore((s) => s.lastRedirect);
+  const reportIncompleteRedirect = useUserStore((s) => s.reportIncompleteRedirect);
   const [searchParams] = useSearchParams();
   const showDebug = searchParams.get("debug") === "auth";
   const navigate = useNavigate();
@@ -58,6 +60,13 @@ export default function LoginPage() {
   useEffect(() => {
     if (user && !user.isAnonymous) navigate("/timer", { replace: true });
   }, [user, navigate]);
+
+  // Redirect HP yang kembali tanpa hasil jangan diam: tampilkan panduan sekali.
+  useEffect(() => {
+    if (!loading && !user && lastRedirect?.status === "success-null") {
+      reportIncompleteRedirect();
+    }
+  }, [loading, user, lastRedirect, reportIncompleteRedirect]);
 
   // Bungkus agar tidak ada unhandled rejection jika auth gagal.
   // Error asli sudah disimpan di store.error dan ditampilkan di banner bawah.
@@ -117,6 +126,12 @@ export default function LoginPage() {
           >
             {loading ? "Memuat..." : "Login dengan Google"}
           </Button>
+
+          {isMobileOrStandalone() && (
+            <p className="text-center text-xs font-medium opacity-60">
+              Akan dibuka halaman Google — pilih akun, lalu otomatis kembali. Jangan tutup tab ini.
+            </p>
+          )}
 
           <p className="pt-2 text-center text-xs font-medium opacity-60">Data anonim disimpan lokal. Saat login nanti, data akan digabungkan.</p>
         </CardContent>

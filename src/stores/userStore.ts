@@ -37,6 +37,8 @@ interface UserStoreActions {
   signInAnonymously: () => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
+  /** Tampilkan panduan sekali jika redirect kembali tanpa hasil (attempt ada, user null). */
+  reportIncompleteRedirect: () => void;
 }
 
 export function isMobileOrStandalone(): boolean {
@@ -124,13 +126,31 @@ export function toFriendlyAuthMessage(err: unknown): string {
   }
 }
 
-export const useUserStore = create<UserStoreState & UserStoreActions>((set) => ({
+export const useUserStore = create<UserStoreState & UserStoreActions>((set, get) => ({
   user: null,
   loading: true,
   error: null,
   lastRedirect: null,
 
   clearError: () => set({ error: null }),
+
+  reportIncompleteRedirect: () => {
+    let hasAttempt = false;
+    try {
+      hasAttempt = !!localStorage.getItem("runease:authAttempt");
+    } catch {
+      return;
+    }
+    if (!hasAttempt) return;
+    const s = get();
+    // Hanya jika terbukti: redirect kembali tanpa hasil DAN tidak ada user.
+    if (s.user || s.loading || s.lastRedirect?.status !== "success-null") return;
+    clearAuthAttempt();
+    set({
+      error:
+        "Login tidak selesai. Halaman Google mungkin terbuka di tab lain — selesaikan di sana, atau tap Coba lagi di tab ini.",
+    });
+  },
 
   init: () => {
     // Pastikan persistence lokal (penting untuk HP & PWA standalone)
