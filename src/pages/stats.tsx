@@ -173,12 +173,12 @@ export default function StatsPage() {
         <Card deco="blue" className="p-4 text-center">
           <div className="text-xs font-bold uppercase tracking-widest opacity-60">Sesi</div>
           <div className="font-black text-2xl tabular-nums">{totalSessions}</div>
-          <div className="text-xs font-medium opacity-60">{guestStats ? "lokal" : "cloud"}</div>
+          <div className="text-xs font-medium opacity-60">{guestStats ? "tersimpan di lokal" : "tersimpan di cloud"}</div>
         </Card>
         <Card deco="yellow" className="p-4 text-center">
           <div className="text-xs font-bold uppercase tracking-widest opacity-60">Total Durasi</div>
           <div className="font-black text-2xl tabular-nums">{Math.floor((guestStats?.totalSec ?? sessions.reduce((s, x) => s + x.durationSec, 0)) / 60)}m</div>
-          <div className="text-xs font-medium opacity-60">{uid ? "sinkron" : "guest"}</div>
+          <div className="text-xs font-medium opacity-60">{uid ? "tersinkronisasi" : "guest mode"}</div>
         </Card>
       </div>
 
