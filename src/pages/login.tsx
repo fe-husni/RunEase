@@ -23,11 +23,27 @@ function AuthDebugPanel() {
   } catch {
     // ignore
   }
+  // Penentu H1 vs H2: back_forward = mundur dari Google; navigate + tabDibuang = tab dibunuh OS.
+  let navType = "-";
+  try {
+    const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+    if (nav?.type) navType = nav.type;
+  } catch {
+    // ignore
+  }
+  let discarded = "-";
+  try {
+    discarded = (document as unknown as { wasDiscarded?: boolean }).wasDiscarded ? "ya" : "tidak";
+  } catch {
+    // ignore
+  }
   const rows: Array<[string, string]> = [
     ["host", window.location.hostname],
     ["url", window.location.pathname + window.location.search],
     ["mobileUA", isMobileOrStandalone() ? "ya" : "tidak"],
     ["standalone", standalone ? "ya" : "tidak"],
+    ["navigasi", navType],
+    ["tabDibuang", discarded],
     ["loading", String(loading)],
     ["user", user ? `${user.uid.slice(0, 8)}… ${user.isAnonymous ? "(anon)" : user.email ?? ""}` : "-"],
     ["error", error ?? "-"],
