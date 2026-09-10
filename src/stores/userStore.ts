@@ -70,8 +70,12 @@ function needsRedirectFallback(code?: string): boolean {
   return code === "auth/popup-blocked" || code === "auth/operation-not-supported-in-this-environment";
 }
 
-/** Jejak attempt redirect — dibaca panel ?debug=auth setelah kembali dari Google. */
-function recordAuthAttempt(path: "redirect-signin" | "redirect-link") {
+/** Pesan saat login tidak selesai tanpa error teknis — dipakai banner + panduan HP. */
+const INCOMPLETE_LOGIN_MSG =
+  "Login tidak selesai. Jika halaman Google masih terbuka di tab lain, selesaikan di sana — atau tap Coba lagi di tab ini.";
+
+/** Jejak attempt login — dibaca panel ?debug=auth setelah kembali dari Google. */
+function recordAuthAttempt(path: "redirect-signin" | "redirect-link" | "popup-signin" | "popup-link") {
   try {
     localStorage.setItem(
       "runease:authAttempt",
@@ -146,10 +150,7 @@ export const useUserStore = create<UserStoreState & UserStoreActions>((set, get)
     // Hanya jika terbukti: redirect kembali tanpa hasil DAN tidak ada user.
     if (s.user || s.loading || s.lastRedirect?.status !== "success-null") return;
     clearAuthAttempt();
-    set({
-      error:
-        "Login tidak selesai. Halaman Google mungkin terbuka di tab lain — selesaikan di sana, atau tap Coba lagi di tab ini.",
-    });
+    set({ error: INCOMPLETE_LOGIN_MSG });
   },
 
   init: () => {
@@ -236,13 +237,12 @@ export const useUserStore = create<UserStoreState & UserStoreActions>((set, get)
       }
     };
 
-    // Jika sebelumnya anon, coba link (agar uid tetap & data tidak hilang)
+    // Jika sebelumnya anon, coba link (agar uid tetap & data tidak hilang).
+    // Popup dulu di semua device (hasil via postMessage, tidak tergantung
+    // sessionStorage tab seperti redirect); redirect hanya fallback.
     if (prevUser?.isAnonymous) {
-      if (isMobileOrStandalone()) {
-        await doRedirectLink(prevUser);
-        return;
-      }
       try {
+        recordAuthAttempt("popup-link");
         await linkWithPopup(prevUser, new GoogleAuthProvider());
         // link sukses, onAuthStateChanged akan update user (uid sama)
         // migrasi guest jika ada (anon mungkin punya guest sebelumnya)
@@ -261,8 +261,13 @@ export const useUserStore = create<UserStoreState & UserStoreActions>((set, get)
           console.warn("[auth] link failed, fallback signIn", e.code);
           // lanjut ke flow signIn normal di bawah
         } else if (isUserCancelled(e.code)) {
-          // User tutup popup sendiri — diam saja, jangan redirect, jangan error.
-          set({ loading: false, error: null });
+          // Desktop: tutup popup = diam. HP: tampilkan panduan (kegagalan diam
+          // di HP hampir selalu bukan pembatalan sengaja, melainkan tab tertutup).
+          if (isMobileOrStandalone()) {
+            set({ error: INCOMPLETE_LOGIN_MSG, loading: false });
+          } else {
+            set({ loading: false, error: null });
+          }
           return;
         } else if (needsRedirectFallback(e.code)) {
           await doRedirectLink(prevUser);
@@ -275,12 +280,10 @@ export const useUserStore = create<UserStoreState & UserStoreActions>((set, get)
       }
     }
 
-    // Non-anon atau fallback: signIn normal + migrasi guest
-    if (isMobileOrStandalone()) {
-      await doRedirectSignIn();
-      return;
-    }
+    // SignIn normal + migrasi guest. Popup dulu di semua device (alasan di atas);
+    // redirect hanya jika popup diblokir / tidak didukung environment.
     try {
+      recordAuthAttempt("popup-signin");
       const cred = await signInWithPopup(auth, googleProvider);
       // migrasi guest -> uid baru
       if (wasGuest && cred.user?.uid) {
@@ -295,8 +298,12 @@ export const useUserStore = create<UserStoreState & UserStoreActions>((set, get)
     } catch (err) {
       const e = err as { code?: string };
       if (isUserCancelled(e.code)) {
-        // User tutup popup sendiri — diam saja.
-        set({ loading: false, error: null });
+        // Desktop: diam. HP: panduan (lihat komentar di branch link di atas).
+        if (isMobileOrStandalone()) {
+          set({ error: INCOMPLETE_LOGIN_MSG, loading: false });
+        } else {
+          set({ loading: false, error: null });
+        }
         return;
       }
       if (needsRedirectFallback(e.code)) {

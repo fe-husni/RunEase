@@ -145,7 +145,7 @@ export default function LoginPage() {
 
           {isMobileOrStandalone() && (
             <p className="text-center text-xs font-medium opacity-60">
-              Akan dibuka halaman Google — pilih akun, lalu otomatis kembali. Jangan tutup tab ini.
+              Akan dibuka tab Google — pilih akun, tap Lanjutkan, lalu kembali otomatis ke tab ini. Jangan tutup tab ini.
             </p>
           )}
 

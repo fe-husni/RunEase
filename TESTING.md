@@ -58,9 +58,11 @@ Keterbatasan yang dikomunikasikan ke user (bukan bug): iOS membatasi audio backg
 2. Login Google → modal "Gabungkan N sesi lokal?" → Ya → sesi tamu pindah ke cloud.
 3. Login akun sama di device kedua → History sama.
 
-> Known issue Android: Chrome kadang membuka chooser Google di tab terpisah sehingga
-> tab asal kembali tanpa hasil (panel `?debug=auth`: attempt ada + `success-null`).
-> App menampilkan panduan "Login tidak selesai…" + tombol Coba lagi (jangan diam).
+> Known issue Android (sudah ditangani): alur redirect murni gagal diam-diam
+> (`success-null`) saat serah-terima via handler `firebaseapp.com` terhambat
+> pemblokiran third-party cookie (default Chrome Android). App memakai
+> popup-dulu + redirect-fallback di semua device; kegagalan tanpa hasil
+> menampilkan panduan "Login tidak selesai…" + tombol Coba lagi (jangan diam).
 > Jangan tutup tab saat dialihkan ke Google.
 
 ### M6 — Export/Import (AC-04)
