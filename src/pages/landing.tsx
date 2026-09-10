@@ -27,12 +27,12 @@ export default function LandingPage() {
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to="/timer">
-                <Button variant="red" shape="square" size="lg">
-                Mulai Lari Sekarang <ArrowRight className="ml-2 h-5 w-5" />
+                <Button variant="red" shape="square" size="sm" className="lg:px-8 lg:py-4 lg:text-base">
+                Mulai Lari Sekarang <ArrowRight className="ml-2 h-4 w-4 lg:h-5 lg:w-5" />
                 </Button>
               </Link>
               <a href="#cara-kerja">
-                <Button variant="outline" shape="square" size="lg">
+                <Button variant="outline" shape="square" size="sm" className="lg:px-8 lg:py-4 lg:text-base">
                 Pelajari Fiturnya
                 </Button>
               </a>
