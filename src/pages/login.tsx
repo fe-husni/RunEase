@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useUserStore, isMobileOrStandalone } from "@/stores/userStore";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,70 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { AppLogo } from "@/components/brand/app-logo";
 import { AlertTriangle, X } from "lucide-react";
 
-/** Panel diagnosis sementara — hanya tampil di /login?debug=auth. HAPUS setelah bug HP fix. */
-function AuthDebugPanel() {
-  const { loading, user, error, lastRedirect } = useUserStore();
-  let attempt: string | null = null;
-  let attemptError = false;
-  let standalone = false;
-  try {
-    attempt = localStorage.getItem("runease:authAttempt");
-  } catch {
-    attemptError = true;
-  }
-  try {
-    standalone = window.matchMedia("(display-mode: standalone)").matches;
-  } catch {
-    // ignore
-  }
-  // Penentu H1 vs H2: back_forward = mundur dari Google; navigate + tabDibuang = tab dibunuh OS.
-  let navType = "-";
-  try {
-    const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
-    if (nav?.type) navType = nav.type;
-  } catch {
-    // ignore
-  }
-  let discarded = "-";
-  try {
-    discarded = (document as unknown as { wasDiscarded?: boolean }).wasDiscarded ? "ya" : "tidak";
-  } catch {
-    // ignore
-  }
-  const rows: Array<[string, string]> = [
-    ["host", window.location.hostname],
-    ["url", window.location.pathname + window.location.search],
-    ["mobileUA", isMobileOrStandalone() ? "ya" : "tidak"],
-    ["standalone", standalone ? "ya" : "tidak"],
-    ["navigasi", navType],
-    ["tabDibuang", discarded],
-    ["loading", String(loading)],
-    ["user", user ? `${user.uid.slice(0, 8)}… ${user.isAnonymous ? "(anon)" : user.email ?? ""}` : "-"],
-    ["error", error ?? "-"],
-    ["lastRedirect", lastRedirect ? JSON.stringify(lastRedirect) : "-"],
-    ["authAttempt", attemptError ? "STORAGE-BLOKIR" : (attempt ?? "-")],
-  ];
-  return (
-    <Card deco="red" className="mt-4">
-      <div className="text-sm font-black uppercase tracking-widest">Debug auth (sementara)</div>
-      <dl className="mt-2 space-y-1 font-mono text-xs break-all">
-        {rows.map(([k, v]) => (
-          <div key={k} className="flex gap-2">
-            <dt className="shrink-0 font-bold opacity-60">{k}:</dt>
-            <dd>{v}</dd>
-          </div>
-        ))}
-      </dl>
-    </Card>
-  );
-}
-
 export default function LoginPage() {
   const { user, loading, error, clearError, signInWithGoogle } = useUserStore();
   const lastRedirect = useUserStore((s) => s.lastRedirect);
   const reportIncompleteRedirect = useUserStore((s) => s.reportIncompleteRedirect);
-  const [searchParams] = useSearchParams();
-  const showDebug = searchParams.get("debug") === "auth";
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -160,8 +100,6 @@ export default function LoginPage() {
           </div>
         </Card>
       )}
-
-      {showDebug && <AuthDebugPanel />}
     </div>
   );
 }

@@ -59,10 +59,10 @@ Keterbatasan yang dikomunikasikan ke user (bukan bug): iOS membatasi audio backg
 3. Login akun sama di device kedua → History sama.
 
 > Known issue Android (sudah ditangani): alur redirect murni gagal diam-diam
-> (`success-null`) saat serah-terima via handler `firebaseapp.com` terhambat
-> pemblokiran third-party cookie (default Chrome Android). App memakai
-> popup-dulu + redirect-fallback di semua device; kegagalan tanpa hasil
-> menampilkan panduan "Login tidak selesai…" + tombol Coba lagi (jangan diam).
+> saat serah-terima via handler `firebaseapp.com` terhambat pemblokiran
+> third-party cookie (default Chrome Android). App memakai popup-dulu +
+> redirect-fallback di semua device; kegagalan tanpa hasil menampilkan panduan
+> "Login tidak selesai…" + tombol Coba lagi (jangan diam).
 > Jangan tutup tab saat dialihkan ke Google.
 
 ### M6 — Export/Import (AC-04)
