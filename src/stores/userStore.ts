@@ -20,6 +20,15 @@ interface UserStoreState {
   user: User | null;
   loading: boolean;
   error: string | null;
+  /** Hasil getRedirectResult terakhir — untuk diagnosis login HP (?debug=auth). */
+  lastRedirect: RedirectDebug | null;
+}
+
+/** Hasil pemrosesan redirect login — null/success-null = hasil hilang di jalan. */
+export interface RedirectDebug {
+  status: "success-user" | "success-null" | "cancelled" | "error";
+  code?: string;
+  at: string;
 }
 
 interface UserStoreActions {
@@ -30,7 +39,7 @@ interface UserStoreActions {
   clearError: () => void;
 }
 
-function isMobileOrStandalone(): boolean {
+export function isMobileOrStandalone(): boolean {
   if (typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) return true;
   if (typeof window !== "undefined") {
     try {
@@ -57,6 +66,26 @@ function isUserCancelled(code?: string): boolean {
 /** Popup memang tidak bisa dibuka di environment ini — baru boleh fallback redirect. */
 function needsRedirectFallback(code?: string): boolean {
   return code === "auth/popup-blocked" || code === "auth/operation-not-supported-in-this-environment";
+}
+
+/** Jejak attempt redirect — dibaca panel ?debug=auth setelah kembali dari Google. */
+function recordAuthAttempt(path: "redirect-signin" | "redirect-link") {
+  try {
+    localStorage.setItem(
+      "runease:authAttempt",
+      JSON.stringify({ ts: new Date().toISOString(), path, from: window.location.href })
+    );
+  } catch {
+    // Storage diblokir — panel akan menunjukkan attempt=null, itu sendiri petunjuk.
+  }
+}
+
+function clearAuthAttempt() {
+  try {
+    localStorage.removeItem("runease:authAttempt");
+  } catch {
+    // ignore
+  }
 }
 
 /**
@@ -99,6 +128,7 @@ export const useUserStore = create<UserStoreState & UserStoreActions>((set) => (
   user: null,
   loading: true,
   error: null,
+  lastRedirect: null,
 
   clearError: () => set({ error: null }),
 
@@ -109,27 +139,40 @@ export const useUserStore = create<UserStoreState & UserStoreActions>((set) => (
     // Handle redirect result (untuk HP yang pakai signInWithRedirect)
     getRedirectResult(auth)
       .then((result) => {
+        const at = new Date().toISOString();
         if (result?.user) {
-          set({ user: result.user, loading: false, error: null });
+          set({ user: result.user, loading: false, error: null, lastRedirect: { status: "success-user", at } });
+        } else {
+          // Hasil null = tidak ada redirect pending di tab ini.
+          // Jangan timpa hasil yang sudah tercatat (StrictMode dev memanggil init 2x).
+          set((s) =>
+            s.lastRedirect ? {} : { lastRedirect: { status: "success-null", at } }
+          );
         }
       })
       .catch((err) => {
         const e = err as { code?: string };
+        const at = new Date().toISOString();
         // User batal saat redirect = diam saja, jangan tampilkan error
         if (isUserCancelled(e?.code)) {
-          set({ loading: false, error: null });
+          set((s) =>
+            s.lastRedirect
+              ? { loading: false, error: null }
+              : { loading: false, error: null, lastRedirect: { status: "cancelled", code: e?.code, at } }
+          );
           return;
         }
         console.warn("[auth] getRedirectResult error", err);
-        set({ loading: false, error: toFriendlyAuthMessage(err) });
+        set({ loading: false, error: toFriendlyAuthMessage(err), lastRedirect: { status: "error", code: e?.code, at } });
       });
 
     const unsub = onAuthStateChanged(
       auth,
       async (user) => {
         set({ user, loading: false, error: null });
-        // jika ada pending guest migrate (dari redirect flow), eksekusi
-        if (user && localStorage.getItem("runease:pendingGuestMigrate") === "1") {
+        if (user) {
+          clearAuthAttempt();
+          if (localStorage.getItem("runease:pendingGuestMigrate") === "1") {
           try {
             const res = await migrateGuestToUid(user.uid);
             if (res.migrated > 0) console.log(`[migrate] pending guest->${user.uid}: ${res.migrated} sessions`);
@@ -137,6 +180,7 @@ export const useUserStore = create<UserStoreState & UserStoreActions>((set) => (
             console.warn("[migrate] pending failed", e);
           } finally {
             localStorage.removeItem("runease:pendingGuestMigrate");
+          }
           }
         }
       },
@@ -152,6 +196,7 @@ export const useUserStore = create<UserStoreState & UserStoreActions>((set) => (
 
     const doRedirectSignIn = async () => {
       if (wasGuest) localStorage.setItem("runease:pendingGuestMigrate", "1");
+      recordAuthAttempt("redirect-signin");
       try {
         await signInWithRedirect(auth, googleProvider);
         // Halaman akan pindah — biarkan loading true sampai unload.
@@ -162,6 +207,7 @@ export const useUserStore = create<UserStoreState & UserStoreActions>((set) => (
     };
 
     const doRedirectLink = async (anonUser: User) => {
+      recordAuthAttempt("redirect-link");
       try {
         await linkWithRedirect(anonUser, new GoogleAuthProvider());
         // Halaman akan pindah — biarkan loading true sampai unload.
