@@ -4,7 +4,7 @@ import type { SessionDoc } from "@/types/session";
 import type { PresetDoc } from "@/types/preset";
 import { toMillis } from "@/lib/session";
 import { calcStreak } from "@/lib/streak";
-import { checkBadges, getBadgeDef } from "@/lib/badges";
+import { checkBadges, getBadgeDef, type BadgeContext } from "@/lib/badges";
 import { levelFromXP } from "@/lib/gamification";
 
 export interface UserDocLean {
@@ -93,7 +93,18 @@ export async function updateUserAfterSession(params: {
     streak: streakInfo.current,
   };
   const earnedIds = checkBadges(badgeCtx);
+  const newBadges = await awardBadges(uid, earnedIds);
 
+  return { xp: newXP, level: newLevel, newBadges, streak: streakInfo.current };
+}
+
+/**
+ * Tulis badge yang baru di-unlock ke `users/{uid}/badges`.
+ * Idempoten: badge yang sudah ada tidak ditulis ulang.
+ * Return id badge yang BARU ditulis (untuk notifikasi UI).
+ */
+export async function awardBadges(uid: string, earnedIds: string[]): Promise<string[]> {
+  if (earnedIds.length === 0) return [];
   // fetch existing badges to find new
   const badgesSnap = await getDocs(collection(db, `users/${uid}/badges`));
   const existing = new Set(badgesSnap.docs.map((d) => d.id));
@@ -113,8 +124,35 @@ export async function updateUserAfterSession(params: {
       });
     }
   }
+  return newBadges;
+}
 
-  return { xp: newXP, level: newLevel, newBadges, streak: streakInfo.current };
+/**
+ * Evaluasi + tulis badge dari konteks penuh (dipakai di luar alur sesi,
+ * mis. setelah simpan preset atau saat buka Statistik). Login-only.
+ */
+export async function evaluateAndAwardBadges(uid: string, ctx: BadgeContext): Promise<string[]> {
+  return awardBadges(uid, checkBadges(ctx));
+}
+
+/**
+ * Susun BadgeContext untuk user login dari data lokal + dokumen cloud.
+ * Dipakai evaluasi catch-up (simpan preset, buka Statistik).
+ */
+export async function buildBadgeContext(params: {
+  uid: string;
+  sessions: SessionDoc[];
+  presets: PresetDoc[];
+}): Promise<BadgeContext> {
+  const { uid, sessions, presets } = params;
+  const userDoc = await fetchUserDoc(uid);
+  return {
+    sessions,
+    presets,
+    totalRunMin: Math.floor((userDoc?.stats.totalRunSec ?? 0) / 60),
+    level: userDoc?.level ?? 1,
+    streak: userDoc?.streak.current ?? 0,
+  };
 }
 
 export async function fetchUserDoc(uid: string): Promise<UserDocLean | null> {

@@ -1,4 +1,5 @@
 import type { TimerConfig, Phase } from "@/types/timer";
+import { getNextPhase } from "@/lib/phase";
 
 type WorkerRequest =
   | { type: "start"; config: TimerConfig }
@@ -18,6 +19,7 @@ type WorkerResponse =
     }
   | { type: "phaseChange"; from: Phase; to: Phase; setsCompleted: number }
   | { type: "started"; phase: Phase; remainingSec: number }
+  | { type: "finished" }
   | { type: "stopped" };
 
 let config: TimerConfig | null = null;
@@ -45,20 +47,6 @@ function getPhaseDuration(p: Phase, cfg: TimerConfig): number {
     default:
       return 0;
   }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getNextPhase(current: Phase, _cfg: TimerConfig): Phase {
-  if (current === "warmup") return "run";
-  if (current === "run") return "walk";
-  if (current === "walk") {
-    // completed one set
-    // For infinite mode, loop run->walk forever
-    // For duration/sets, we would check target (not needed MVP infinite)
-    return "run";
-  }
-  if (current === "cooldown") return "idle";
-  return "run";
 }
 
 function clearIntervalIfNeeded() {
@@ -89,26 +77,19 @@ function sendTick() {
   if (remaining <= 0) {
     // phase finished, transition
     const from = phase;
-    const next = getNextPhase(phase, config);
     if (from === "walk") setsCompleted += 1;
+    const next = getNextPhase(phase, config, setsCompleted);
 
-    // handle cooldown edge for infinite: never auto cooldown, just loop
-    // if next is cooldown but we are infinite, skip to run
-    let actualNext: Phase = next;
-    if (actualNext === "cooldown" && config.mode === "infinite") {
-      actualNext = "run";
-    }
-
-    if (actualNext === "idle") {
-      // finished (for non-infinite)
+    if (next === "idle") {
+      // selesai alami (target tercapai) — bedakan dari stop manual
       isRunning = false;
       phase = "idle";
       clearIntervalIfNeeded();
-      (self as unknown as Worker).postMessage({ type: "stopped" } as WorkerResponse);
+      (self as unknown as Worker).postMessage({ type: "finished" } as WorkerResponse);
       return;
     }
 
-    phase = actualNext;
+    phase = next;
     phaseDuration = getPhaseDuration(phase, config);
     phaseStartTime = now;
     (self as unknown as Worker).postMessage({
@@ -170,18 +151,16 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
     case "skip": {
       if (!isRunning || !config) break;
       const from = phase;
-      const next = getNextPhase(phase, config);
       if (from === "walk") setsCompleted += 1;
-      let actualNext: Phase = next;
-      if (actualNext === "cooldown" && config.mode === "infinite") actualNext = "run";
-      if (actualNext === "idle") {
+      const next = getNextPhase(phase, config, setsCompleted);
+      if (next === "idle") {
         isRunning = false;
         phase = "idle";
         clearIntervalIfNeeded();
-        (self as unknown as Worker).postMessage({ type: "stopped" } as WorkerResponse);
+        (self as unknown as Worker).postMessage({ type: "finished" } as WorkerResponse);
         break;
       }
-      phase = actualNext;
+      phase = next;
       phaseDuration = getPhaseDuration(phase, config);
       phaseStartTime = Date.now();
       (self as unknown as Worker).postMessage({

@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useTimerStore, formatTime } from "@/stores/timerStore";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useTimerStore, formatTime, DEFAULT_TARGET_SETS, MIN_TARGET_SETS, MAX_TARGET_SETS } from "@/stores/timerStore";
 import { useTimerWorker } from "@/hooks/useTimerWorker";
 import { useVibration } from "@/hooks/useVibration";
 import { useWakeLock } from "@/hooks/useWakeLock";
@@ -12,21 +12,24 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { PresetDoc } from "@/types/preset";
-import { Clock, Settings2, Volume2 } from "lucide-react";
+import { Clock, Settings2, Volume2, Minus, Plus } from "lucide-react";
 import { useUserStore } from "@/stores/userStore";
 import { useSessionStore } from "@/stores/sessionStore";
 import { usePresetStore } from "@/stores/presetStore";
 import { MAX_CUSTOM_PRESETS } from "@/lib/presets";
 import { saveSession } from "@/lib/session";
-import { updateUserAfterSession } from "@/lib/userStats";
+import { updateUserAfterSession, evaluateAndAwardBadges, buildBadgeContext } from "@/lib/userStats";
+import { getBadgeDef } from "@/lib/badges";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { track } from "@/lib/analytics";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
 import { fetchSettings, defaultSettings } from "@/lib/settings";
 import type { SessionDoc } from "@/types/session";
+import type { SessionStatus } from "@/types/session";
 
 export default function TimerPage() {
   const { phase, remainingSec, phaseDuration, totalElapsedSec, setsCompleted, isRunning, isPaused, config, setConfig, startedAt } = useTimerStore();
-  const { start, pause, resume, skip, stop, setOnPhaseChange } = useTimerWorker();
+  const { start, pause, resume, skip, stop, setOnPhaseChange, setOnFinished } = useTimerWorker();
   const { vibrateForPhase } = useVibration();
   const user = useUserStore((s) => s.user);
   const { sessions, addLocal } = useSessionStore();
@@ -35,6 +38,7 @@ export default function TimerPage() {
   const addCustom = usePresetStore((s) => s.add);
   const allPresets = useMemo(() => [...builtinPresets, ...customs], [customs]);
   const { incrementSessionCount } = usePWAInstall();
+  const { notify } = useConfirmDialog();
   const [settings, setSettings] = useState(defaultSettings);
   const { active: wakeActive } = useWakeLock(isRunning && !isPaused && settings.wakeLock);
 
@@ -49,6 +53,8 @@ export default function TimerPage() {
   const vibrateEnabled = settings.vibrate;
   const soundId = settings.soundId;
   const notifEnabled = settings.notifications;
+  // cegah simpan sesi ganda (STOP manual vs selesai alami target)
+  const finishGuardRef = useRef(false);
 
   useEffect(() => {
     fetchSettings(user?.uid ?? null).then(setSettings);
@@ -126,7 +132,14 @@ export default function TimerPage() {
       return;
     }
     setActivePresetId(p.id);
-    setConfig({ runSec: p.runSec, walkSec: p.walkSec, warmupSec: p.warmupSec, cooldownSec: p.cooldownSec });
+    setConfig({
+      runSec: p.runSec,
+      walkSec: p.walkSec,
+      warmupSec: p.warmupSec,
+      cooldownSec: p.cooldownSec,
+      mode: p.mode === "sets" ? "sets" : "infinite",
+      targetSets: p.mode === "sets" ? (p.targetSets ?? DEFAULT_TARGET_SETS) : undefined,
+    });
   };
 
   const handleManualChange = (field: "runSec" | "walkSec", value: number) => {
@@ -134,6 +147,20 @@ export default function TimerPage() {
     setActivePresetId("custom");
     setConfig({ [field]: value } as Partial<typeof config>);
   };
+
+  const notifyNewBadges = useCallback(
+    async (newBadges: string[]) => {
+      if (newBadges.length === 0) return;
+      newBadges.forEach((b) => track("badge_unlocked", { badgeId: b }));
+      const names = newBadges.map((b) => getBadgeDef(b)?.name ?? b).join(", ");
+      await notify({
+        title: newBadges.length > 1 ? "Badge didapat!" : "Badge didapat!",
+        message: `Kamu membuka: ${names}. Cek di Statistik > Badge.`,
+        variant: "yellow",
+      });
+    },
+    [notify]
+  );
 
   const handleSaveCustom = async () => {
     if (isRunning || savingPreset) return;
@@ -146,9 +173,27 @@ export default function TimerPage() {
         walkSec: config.walkSec,
         warmupSec: config.warmupSec,
         cooldownSec: config.cooldownSec,
+        mode: config.mode,
+        targetSets: config.mode === "sets" ? config.targetSets : undefined,
       });
       setCustomName("");
       setActivePresetId(p.id);
+      // Evaluasi badge (mis. Kolektor Preset) — login-only, idempoten
+      if (user?.uid) {
+        try {
+          const customsNow = usePresetStore.getState().customs;
+          const ctx = await buildBadgeContext({
+            uid: user.uid,
+            sessions: useSessionStore.getState().sessions,
+            presets: [...builtinPresets, ...customsNow],
+          });
+          const fresh = await evaluateAndAwardBadges(user.uid, ctx);
+          console.log("[gamify] preset-save check, customs:", customsNow.length, "newBadges:", fresh);
+          await notifyNewBadges(fresh);
+        } catch (err) {
+          console.warn("[gamify] preset-save badge check failed", err);
+        }
+      }
     } catch (e) {
       setPresetError((e as Error).message);
     } finally {
@@ -164,6 +209,7 @@ export default function TimerPage() {
         ensureNotificationPermission().catch(() => {});
       }).catch(() => {});
     }
+    finishGuardRef.current = false;
     setShowSummary(false);
     track("timer_started", {
       runSec: config.runSec,
@@ -174,13 +220,17 @@ export default function TimerPage() {
     start(config);
   }, [config, start, activePresetId, notifEnabled]);
 
-  const handleStop = useCallback(async () => {
-    const duration = totalElapsedSec;
-    const sets = setsCompleted;
-    const startedAtMs = startedAt ?? Date.now() - duration * 1000;
-    const preset = allPresets.find((p) => p.id === activePresetId);
-    const presetName = preset?.name ?? "Custom";
-    stop();
+  const handleStop = useCallback(
+    async (status: SessionStatus = "stopped") => {
+      // cegah simpan ganda (mis. STOP manual tepat saat target tercapai)
+      if (finishGuardRef.current) return;
+      finishGuardRef.current = true;
+      const duration = totalElapsedSec;
+      const sets = setsCompleted;
+      const startedAtMs = startedAt ?? Date.now() - duration * 1000;
+      const preset = allPresets.find((p) => p.id === activePresetId);
+      const presetName = preset?.name ?? "Custom";
+      stop();
 
     if (duration < 60) {
       // abandoned — don't save, just show brief toast-like summary
@@ -200,7 +250,7 @@ export default function TimerPage() {
         startedAtMs,
         durationSec: duration,
         setsCompleted: sets,
-        status: "stopped",
+        status,
       });
       if (session.status !== "abandoned") {
         addLocal(session);
@@ -221,7 +271,7 @@ export default function TimerPage() {
             });
             if (result.newBadges.length > 0) {
               console.log("[gamify] new badges", result.newBadges);
-              result.newBadges.forEach((b) => track("badge_unlocked", { badgeId: b }));
+              await notifyNewBadges(result.newBadges);
             }
           } catch (err) {
             console.warn("[gamify] update failed", err);
@@ -237,7 +287,15 @@ export default function TimerPage() {
     } finally {
       setSaving(false);
     }
-  }, [totalElapsedSec, setsCompleted, startedAt, activePresetId, config, user, stop, addLocal, incrementSessionCount, sessions, allPresets]);
+  }, [totalElapsedSec, setsCompleted, startedAt, activePresetId, config, user, stop, addLocal, incrementSessionCount, sessions, allPresets, notifyNewBadges]);
+
+  // selesai alami dari worker (target set tercapai) → simpan "completed"
+  useEffect(() => {
+    setOnFinished(() => {
+      void handleStop("completed");
+    });
+    return () => setOnFinished(null);
+  }, [setOnFinished, handleStop]);
 
   // keyboard shortcuts (Space global hanya saat fokus bukan di tombol — tombol pakai klik native)
   useEffect(() => {
@@ -264,7 +322,14 @@ export default function TimerPage() {
   useEffect(() => {
     const p = builtinPresets.find((x) => x.id === activePresetId);
     if (p && !isRunning) {
-      setConfig({ runSec: p.runSec, walkSec: p.walkSec, warmupSec: p.warmupSec, cooldownSec: p.cooldownSec });
+      setConfig({
+        runSec: p.runSec,
+        walkSec: p.walkSec,
+        warmupSec: p.warmupSec,
+        cooldownSec: p.cooldownSec,
+        mode: p.mode === "sets" ? "sets" : "infinite",
+        targetSets: undefined,
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -279,7 +344,7 @@ export default function TimerPage() {
         <Card deco="blue" className="p-3 sm:p-4">
           <div className="text-[11px] sm:text-xs font-black uppercase tracking-widest">Simpan Custom ini?</div>
           <p className="mt-1 text-sm font-medium tabular-nums opacity-70 break-words">
-            {config.runSec}s / {config.walkSec}s{config.warmupSec > 0 ? ` • Warmup ${config.warmupSec}s` : ""}{config.cooldownSec > 0 ? ` • Cooldown ${config.cooldownSec}s` : ""}
+            {config.runSec}s / {config.walkSec}s{config.warmupSec > 0 ? ` • Warmup ${config.warmupSec}s` : ""}{config.cooldownSec > 0 ? ` • Cooldown ${config.cooldownSec}s` : ""}{config.mode === "sets" ? ` • Target ${config.targetSets ?? DEFAULT_TARGET_SETS} set` : " • Bebas"}
           </p>
           {presetError && (
             <div className="mt-2 border-2 border-bauhaus-red bg-red-50 p-2 text-sm font-medium text-bauhaus-red break-words">{presetError}</div>
@@ -371,7 +436,70 @@ export default function TimerPage() {
               />
             </div>
           </div>
-          <p className="mt-2 text-xs font-medium opacity-60">Warmup di awal, Cooldown di akhir (untuk mode infinite, cooldown diabaikan sampai stop manual)</p>
+          <p className="mt-2 text-xs font-medium opacity-60">Warmup di awal{config.mode === "sets" ? ", Cooldown di akhir setelah set terakhir, lalu timer berhenti otomatis" : ", Cooldown hanya jalan di mode Target Set (mode Bebas: stop manual)"}</p>
+
+          <div className="mt-3 border-t-2 border-bauhaus-black pt-3">
+            <span className="block text-[11px] sm:text-xs font-black uppercase tracking-widest">Mode Sesi</span>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <Button
+                variant={config.mode === "sets" ? "blue" : "outline"}
+                size="sm"
+                className="min-h-[48px] w-full"
+                onClick={() => {
+                  setActivePresetId("custom");
+                  setConfig({ mode: "infinite", targetSets: undefined });
+                }}
+              >
+                Bebas ♾
+              </Button>
+              <Button
+                variant={config.mode === "sets" ? "blue" : "outline"}
+                size="sm"
+                className="min-h-[48px] w-full"
+                onClick={() => {
+                  setActivePresetId("custom");
+                  setConfig({ mode: "sets", targetSets: config.targetSets ?? DEFAULT_TARGET_SETS });
+                }}
+              >
+                Target Set
+              </Button>
+            </div>
+            {config.mode === "sets" && (
+              <div className="mt-2 flex items-center justify-between gap-2 border-2 border-bauhaus-black bg-white p-2 shadow-bauhaus-sm">
+                <span className="pl-1 text-[11px] sm:text-xs font-black uppercase tracking-widest">Jumlah Set</span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label="Kurangi set"
+                    disabled={(config.targetSets ?? DEFAULT_TARGET_SETS) <= MIN_TARGET_SETS}
+                    onClick={() => {
+                      setActivePresetId("custom");
+                      setConfig({ targetSets: (config.targetSets ?? DEFAULT_TARGET_SETS) - 1 });
+                    }}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="min-w-[64px] text-center font-black tabular-nums text-lg" aria-live="polite">
+                    {config.targetSets ?? DEFAULT_TARGET_SETS}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label="Tambah set"
+                    disabled={(config.targetSets ?? DEFAULT_TARGET_SETS) >= MAX_TARGET_SETS}
+                    onClick={() => {
+                      setActivePresetId("custom");
+                      setConfig({ targetSets: (config.targetSets ?? DEFAULT_TARGET_SETS) + 1 });
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            <p className="mt-2 text-xs font-medium opacity-60">1 set = 1× lari + 1× jalan.</p>
+          </div>
         </Card>
       )}
 
@@ -383,7 +511,7 @@ export default function TimerPage() {
         onPause={pause}
         onResume={resume}
         onSkip={skip}
-        onStop={handleStop}
+        onStop={() => handleStop("stopped")}
       />
 
       {/* Stats ringkas */}
@@ -397,6 +525,12 @@ export default function TimerPage() {
           <>
             <span>•</span>
             <span>Warmup {config.warmupSec}s</span>
+          </>
+        )}
+        {config.mode === "sets" && (
+          <>
+            <span>•</span>
+            <span>Target {config.targetSets ?? DEFAULT_TARGET_SETS} set</span>
           </>
         )}
       </div>
@@ -419,9 +553,9 @@ export default function TimerPage() {
             ) : lastSession ? (
               <div className="text-center">
                 <Badge variant="yellow" className="mb-3">
-                  Sesi Selesai!
+                  {lastSession.status === "completed" ? "Target Tercapai!" : "Sesi Selesai!"}
                 </Badge>
-                <h2 id="session-summary-title" className="font-black uppercase tracking-tighter text-2xl text-balance">Keren! 🔥</h2>
+                <h2 id="session-summary-title" className="font-black uppercase tracking-tighter text-2xl text-balance">{lastSession.status === "completed" ? "Tuntas! 🎯" : "Keren! 🔥"}</h2>
                 <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3 text-center">
                   <div className="border-2 border-bauhaus-black bg-bauhaus-gray p-2 sm:p-3">
                     <div className="stat-label">Durasi</div>

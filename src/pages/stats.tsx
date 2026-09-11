@@ -4,8 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/stores/userStore";
 import { useSessionStore } from "@/stores/sessionStore";
-import { fetchUserDoc } from "@/lib/userStats";
-import { badgeDefs } from "@/lib/badges";
+import { fetchUserDoc, buildBadgeContext, evaluateAndAwardBadges } from "@/lib/userStats";
+import { badgeDefs, getBadgeDef } from "@/lib/badges";
+import { usePresetStore } from "@/stores/presetStore";
+import { builtinPresets } from "@/components/timer/preset-chips";
+import { useConfirmDialog } from "@/components/ui/confirm-dialog";
 import { getChallengeProgress } from "@/lib/challenges";
 import { LevelBar } from "@/components/gamification/level-bar";
 import { StreakFlame } from "@/components/gamification/streak-flame";
@@ -27,6 +30,23 @@ export default function StatsPage() {
 
   const uid = user?.uid ?? null;
   const [period, setPeriod] = useState<"week" | "month">("week");
+  const { notify } = useConfirmDialog();
+
+  const readEarned = async (uid: string) => {
+    const snap = await getDocs(collection(db, `users/${uid}/badges`));
+    const set = new Set<string>();
+    const map = new Map<string, string>();
+    snap.docs.forEach((d) => {
+      const data = d.data() as { id: string; earnedAt?: { toDate?: () => Date; seconds?: number } };
+      set.add(data.id);
+      const at = data.earnedAt;
+      let iso = "";
+      if (at && typeof (at as { toDate?: () => Date }).toDate === "function") iso = (at as { toDate: () => Date }).toDate!().toISOString();
+      else if (at && typeof (at as { seconds: number }).seconds === "number") iso = new Date((at as { seconds: number }).seconds * 1000).toISOString();
+      map.set(data.id, iso);
+    });
+    return { set, map };
+  };
 
   const load = async () => {
     setLoading(true);
@@ -35,20 +55,35 @@ export default function StatsPage() {
       const doc = await fetchUserDoc(uid);
       if (doc) setUserDoc({ xp: doc.xp, level: doc.level, streak: doc.streak });
       // badges
-      const snap = await getDocs(collection(db, `users/${uid}/badges`));
-      const set = new Set<string>();
-      const map = new Map<string, string>();
-      snap.docs.forEach((d) => {
-        const data = d.data() as { id: string; earnedAt?: { toDate?: () => Date; seconds?: number } };
-        set.add(data.id);
-        const at = data.earnedAt;
-        let iso = "";
-        if (at && typeof (at as { toDate?: () => Date }).toDate === "function") iso = (at as { toDate: () => Date }).toDate!().toISOString();
-        else if (at && typeof (at as { seconds: number }).seconds === "number") iso = new Date((at as { seconds: number }).seconds * 1000).toISOString();
-        map.set(data.id, iso);
-      });
+      const { set, map } = await readEarned(uid);
       setEarned(set);
       setEarnedAtMap(map);
+      // catch-up: badge yg syaratnya terpenuhi di luar sesi
+      // (mis. Kolektor Preset, atau preset hasil migrasi guest)
+      try {
+        await usePresetStore.getState().fetch(uid);
+        const customsNow = usePresetStore.getState().customs;
+        const ctx = await buildBadgeContext({
+          uid,
+          sessions: useSessionStore.getState().sessions,
+          presets: [...builtinPresets, ...customsNow],
+        });
+        const fresh = await evaluateAndAwardBadges(uid, ctx);
+        console.log("[gamify] stats check, customs:", customsNow.length, "newBadges:", fresh);
+        if (fresh.length > 0) {
+          const again = await readEarned(uid);
+          setEarned(again.set);
+          setEarnedAtMap(again.map);
+          const names = fresh.map((b) => getBadgeDef(b)?.name ?? b).join(", ");
+          await notify({
+            title: "Badge didapat!",
+            message: `Kamu membuka: ${names}.`,
+            variant: "yellow",
+          });
+        }
+      } catch (e) {
+        console.warn("[gamify] stats badge check failed", e);
+      }
     } else {
       // guest: compute from local sessions
       await fetch(null);

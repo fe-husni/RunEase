@@ -1,5 +1,9 @@
 import { create } from "zustand";
 import type { Phase, TimerConfig } from "@/types/timer";
+import { sanitizeTargetSets } from "@/lib/phase";
+
+export { MIN_TARGET_SETS, MAX_TARGET_SETS } from "@/lib/phase";
+export const DEFAULT_TARGET_SETS = 3;
 
 export interface TimerStoreState {
   phase: Phase;
@@ -32,6 +36,7 @@ const defaultConfig: TimerConfig = {
   warmupSec: 0,
   cooldownSec: 0,
   mode: "infinite",
+  targetSets: undefined,
 };
 
 function getInitialRemaining(cfg: TimerConfig): { phase: Phase; remaining: number } {
@@ -63,6 +68,12 @@ export const useTimerStore = create<TimerStoreState & TimerStoreActions>((set, g
     if (nextConfig.cooldownSec > 600) nextConfig.cooldownSec = 600;
     if (nextConfig.runSec > 600) nextConfig.runSec = 600;
     if (nextConfig.walkSec > 600) nextConfig.walkSec = 600;
+    // mode target: targetSets wajib 1-50, else fallback; mode bebas = undefined
+    if (nextConfig.mode !== "sets") {
+      nextConfig.targetSets = undefined;
+    } else {
+      nextConfig.targetSets = sanitizeTargetSets(nextConfig.targetSets, DEFAULT_TARGET_SETS);
+    }
 
     const { phase, remaining } = getInitialRemaining(nextConfig);
     set({

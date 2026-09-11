@@ -2,6 +2,7 @@ import { collection, doc, setDoc, deleteDoc, getDocs, serverTimestamp } from "fi
 import { db } from "@/lib/firebase";
 import localForage from "localforage";
 import type { PresetDoc } from "@/types/preset";
+import { sanitizeTargetSets } from "@/lib/phase";
 
 export const MAX_CUSTOM_PRESETS = 10;
 export const MAX_PRESET_NAME = 24;
@@ -15,6 +16,8 @@ export interface PresetInput {
   soundId?: string;
   icon?: PresetDoc["icon"];
   color?: PresetDoc["color"];
+  mode?: PresetDoc["mode"];
+  targetSets?: number;
 }
 
 const localPresets = localForage.createInstance({ name: "runease", storeName: "presets" });
@@ -49,6 +52,8 @@ export function validatePresetInput(input: PresetInput, existingCustomCount: num
 }
 
 function buildDoc(input: PresetInput): PresetDoc {
+  const mode = input.mode === "sets" ? "sets" : "infinite";
+  const t = input.targetSets;
   return {
     id: `custom_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
     name: input.name.trim(),
@@ -56,7 +61,8 @@ function buildDoc(input: PresetInput): PresetDoc {
     walkSec: input.walkSec,
     warmupSec: input.warmupSec ?? 0,
     cooldownSec: input.cooldownSec ?? 0,
-    mode: "infinite",
+    mode,
+    targetSets: mode === "sets" ? sanitizeTargetSets(t, 3) : undefined,
     soundId: input.soundId ?? "beep",
     icon: input.icon ?? "square",
     color: input.color ?? "blue",
@@ -163,6 +169,8 @@ export async function updatePreset(
     soundId: patch.soundId ?? list[idx].soundId,
     icon: patch.icon ?? list[idx].icon,
     color: patch.color ?? list[idx].color,
+    mode: patch.mode ?? list[idx].mode,
+    targetSets: (patch.mode ?? list[idx].mode) === "sets" ? (patch.targetSets ?? list[idx].targetSets ?? 3) : undefined,
   };
   const err = validatePresetInput(
     { name: merged.name, runSec: merged.runSec, walkSec: merged.walkSec, warmupSec: merged.warmupSec, cooldownSec: merged.cooldownSec },

@@ -13,6 +13,7 @@ type WorkerResponse =
     }
   | { type: "phaseChange"; from: string; to: string; setsCompleted: number }
   | { type: "started"; phase: string; remainingSec: number }
+  | { type: "finished" }
   | { type: "stopped" };
 
 export function useTimerWorker() {
@@ -23,9 +24,15 @@ export function useTimerWorker() {
 
   // callback for phaseChange (to trigger audio/vibrate)
   const onPhaseChangeRef = useRef<((from: string, to: string) => void) | null>(null);
+  // callback for natural finish (target tercapai) — untuk simpan sesi "completed"
+  const onFinishedRef = useRef<(() => void) | null>(null);
 
   const setOnPhaseChange = useCallback((cb: (from: string, to: string) => void) => {
     onPhaseChangeRef.current = cb;
+  }, []);
+
+  const setOnFinished = useCallback((cb: (() => void) | null) => {
+    onFinishedRef.current = cb;
   }, []);
 
   useEffect(() => {
@@ -48,6 +55,9 @@ export function useTimerWorker() {
       } else if (msg.type === "started") {
         setPhase(msg.phase as never, msg.remainingSec);
         setRunning(true, false);
+      } else if (msg.type === "finished") {
+        setRunning(false, false);
+        if (onFinishedRef.current) onFinishedRef.current();
       } else if (msg.type === "stopped") {
         setRunning(false, false);
       }
@@ -85,5 +95,5 @@ export function useTimerWorker() {
     useTimerStore.getState().stop();
   }, []);
 
-  return { start, pause, resume, skip, stop, setOnPhaseChange };
+  return { start, pause, resume, skip, stop, setOnPhaseChange, setOnFinished };
 }

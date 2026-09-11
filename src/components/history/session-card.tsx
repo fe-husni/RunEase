@@ -26,6 +26,7 @@ export function SessionCard({ session, onDelete }: { session: SessionDoc; onDele
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="font-black uppercase tracking-tight text-sm truncate min-w-0">{session.presetSnapshot.name}</span>
+          {session.status === "completed" && <Badge variant="blue" className="shrink-0">Selesai</Badge>}
           {session.status === "stopped" && <Badge variant="outline" className="shrink-0">Stop</Badge>}
           {isAbandoned && <Badge variant="muted" className="shrink-0">Abandoned</Badge>}
         </div>

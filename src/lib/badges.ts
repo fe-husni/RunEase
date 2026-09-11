@@ -19,6 +19,11 @@ export interface BadgeContext {
   streak: number;
 }
 
+/** Sesi yang dihitung untuk badge: abaikan abandoned (<60 detik). */
+export function countableSessions(sessions: SessionDoc[]): SessionDoc[] {
+  return sessions.filter((s) => s.status !== "abandoned");
+}
+
 export const badgeDefs: BadgeDef[] = [
   {
     id: "first_step",
@@ -26,7 +31,7 @@ export const badgeDefs: BadgeDef[] = [
     description: "Selesaikan sesi pertama",
     icon: "Footprints",
     color: "yellow",
-    check: ({ sessions }) => sessions.filter((s) => s.status !== "abandoned").length >= 1,
+    check: ({ sessions }) => countableSessions(sessions).length >= 1,
   },
   {
     id: "streak_7",
@@ -50,7 +55,7 @@ export const badgeDefs: BadgeDef[] = [
     description: "100 interval Run selesai",
     icon: "Repeat",
     color: "blue",
-    check: ({ sessions }) => sessions.reduce((sum, s) => sum + s.setsCompleted, 0) >= 100,
+    check: ({ sessions }) => countableSessions(sessions).reduce((sum, s) => sum + s.setsCompleted, 0) >= 100,
   },
   {
     id: "marathon_mini",
@@ -58,7 +63,7 @@ export const badgeDefs: BadgeDef[] = [
     description: "Sesi 60 menit",
     icon: "Award",
     color: "yellow",
-    check: ({ sessions }) => sessions.some((s) => s.durationSec >= 3600),
+    check: ({ sessions }) => countableSessions(sessions).some((s) => s.durationSec >= 3600),
   },
   {
     id: "early_bird",
@@ -67,7 +72,7 @@ export const badgeDefs: BadgeDef[] = [
     icon: "Sunrise",
     color: "yellow",
     check: ({ sessions }) => {
-      const c = sessions.filter((s) => {
+      const c = countableSessions(sessions).filter((s) => {
         const h = new Date(toMillis(s.startedAt)).getHours();
         return h >= 5 && h < 7;
       }).length;
@@ -81,9 +86,9 @@ export const badgeDefs: BadgeDef[] = [
     icon: "Moon",
     color: "blue",
     check: ({ sessions }) => {
-      const c = sessions.filter((s) => {
+      const c = countableSessions(sessions).filter((s) => {
         const h = new Date(toMillis(s.startedAt)).getHours();
-        return h >= 20 && h < 23;
+        return h >= 20 && h < 24;
       }).length;
       return c >= 5;
     },
@@ -102,7 +107,7 @@ export const badgeDefs: BadgeDef[] = [
     description: "Coba 5 preset berbeda",
     icon: "Compass",
     color: "red",
-    check: ({ sessions }) => new Set(sessions.map((s) => s.presetId).filter(Boolean)).size >= 5,
+    check: ({ sessions }) => new Set(countableSessions(sessions).map((s) => s.presetId).filter(Boolean)).size >= 5,
   },
   {
     id: "completist_20",
@@ -110,7 +115,7 @@ export const badgeDefs: BadgeDef[] = [
     description: "20 sesi total",
     icon: "Trophy",
     color: "yellow",
-    check: ({ sessions }) => sessions.filter((s) => s.status !== "abandoned").length >= 20,
+    check: ({ sessions }) => countableSessions(sessions).length >= 20,
   },
   {
     id: "veteran_500",
