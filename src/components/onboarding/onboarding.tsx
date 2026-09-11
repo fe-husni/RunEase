@@ -75,9 +75,9 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
   return (
     <div className="fixed inset-0 z-[60] flex flex-col bg-bauhaus-gray">
       {/* Top bar */}
-      <div className="flex items-center justify-between border-b-4 border-bauhaus-black bg-white px-4 py-3">
-        <AppLogo />
-        <Button variant="ghost" size="sm" onClick={handleSkip} className="rounded-none">
+      <div className="flex h-14 shrink-0 items-center justify-between border-b-4 border-bauhaus-black bg-white px-4">
+        <AppLogo size="sm" />
+        <Button variant="ghost" size="sm" onClick={handleSkip} className="rounded-none min-h-[44px]">
           <X className="mr-1 h-4 w-4" /> Lewati
         </Button>
       </div>
@@ -97,14 +97,14 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
         <DecoSquare className="absolute bottom-10 left-6 opacity-20" size={40} rotate />
         <div className="absolute bottom-6 right-6 h-16 w-16 rounded-full border-4 border-white/20 bg-white/10" />
 
-        <div className="relative flex flex-1 flex-col justify-center p-6 sm:p-8">
+        <div className="relative flex flex-1 min-h-0 flex-col justify-center overflow-y-auto p-4 sm:p-8">
           <Badge variant={slide.color === "yellow" ? "outline" : "yellow"} className="w-fit">
             {slide.badge}
           </Badge>
-          <h1 className="mt-4 whitespace-pre-line font-black uppercase leading-[0.85] tracking-tighter text-5xl sm:text-6xl">{slide.title}</h1>
-          <p className="mt-3 max-w-md font-medium leading-relaxed opacity-90">{slide.subtitle}</p>
+          <h1 className="mt-4 whitespace-pre-line font-black uppercase leading-[0.85] tracking-tighter text-4xl xs:text-5xl sm:text-6xl">{slide.title}</h1>
+          <p className="mt-3 max-w-md text-sm sm:text-base font-medium leading-relaxed opacity-90">{slide.subtitle}</p>
 
-          <Card deco={slide.color === "blue" ? "yellow" : slide.color === "yellow" ? "red" : "blue"} className="mt-6 max-w-md p-4">
+          <Card deco={slide.color === "blue" ? "yellow" : slide.color === "yellow" ? "red" : "blue"} className="mt-6 max-w-md p-3 sm:p-4">
             <ul className="space-y-2">
               {slide.bullets.map((b) => (
                 <li key={b} className="flex items-center gap-2 text-sm font-bold">
@@ -134,15 +134,15 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
       </div>
 
       {/* Controls */}
-      <div className="bg-white p-4">
-        {permStatus && <p className="mb-2 text-center text-xs font-bold opacity-60">{permStatus}</p>}
-        <div className="flex gap-3">
+      <div className="shrink-0 bg-white p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        {permStatus && <p className="mb-2 text-center text-xs font-bold opacity-60 break-words">{permStatus}</p>}
+        <div className="flex flex-col xs:flex-row gap-2">
           {idx > 0 && (
-            <Button variant="outline" shape="square" className="flex-1" onClick={() => setIdx((v) => v - 1)}>
+            <Button variant="outline" shape="square" className="min-h-[52px] w-full flex-1" onClick={() => setIdx((v) => v - 1)}>
               Kembali
             </Button>
           )}
-          <Button variant={isLast ? "red" : "blue"} shape="square" className="flex-1" onClick={handleNext}>
+          <Button variant={isLast ? "red" : "blue"} shape="square" className="min-h-[52px] w-full flex-1" onClick={handleNext}>
             {isLast ? "Mulai Lari" : "Lanjut"} <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
         </div>

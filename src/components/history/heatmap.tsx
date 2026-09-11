@@ -37,22 +37,30 @@ export function Heatmap({ sessions }: { sessions: SessionDoc[] }) {
 
   return (
     <div>
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
         {days.map((d, i) => (
           <div
             key={i}
             title={`${d.date.toLocaleDateString("id-ID")} • ${Math.floor(d.duration / 60)}m`}
-            className={`h-6 w-full border border-bauhaus-black ${getIntensity(d.duration)}`}
+            className={`h-7 xs:h-6 sm:h-7 min-w-0 w-full border border-bauhaus-black ${getIntensity(d.duration)}`}
           />
         ))}
       </div>
-      <div className="mt-2 flex items-center justify-between text-xs font-bold uppercase tracking-widest opacity-60">
-        <span>35 hari terakhir</span>
-        <span className="flex items-center gap-1">
-          <span className="h-3 w-3 border border-bauhaus-black bg-bauhaus-gray" /> 0
-          <span className="ml-2 h-3 w-3 border border-bauhaus-black bg-bauhaus-yellow/40" /> &lt;10m
-          <span className="h-3 w-3 border border-bauhaus-black bg-bauhaus-yellow" /> 10-30m
-          <span className="h-3 w-3 border border-bauhaus-black bg-bauhaus-red" /> 30m+
+      <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-[11px] sm:text-xs font-bold uppercase tracking-widest opacity-60">
+        <span className="shrink-0">35 hari terakhir</span>
+        <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="flex items-center gap-1 whitespace-nowrap">
+            <span className="h-3 w-3 shrink-0 border border-bauhaus-black bg-bauhaus-gray" /> 0
+          </span>
+          <span className="flex items-center gap-1 whitespace-nowrap">
+            <span className="h-3 w-3 shrink-0 border border-bauhaus-black bg-bauhaus-yellow/40" /> &lt;10m
+          </span>
+          <span className="flex items-center gap-1 whitespace-nowrap">
+            <span className="h-3 w-3 shrink-0 border border-bauhaus-black bg-bauhaus-yellow" /> 10-30m
+          </span>
+          <span className="flex items-center gap-1 whitespace-nowrap">
+            <span className="h-3 w-3 shrink-0 border border-bauhaus-black bg-bauhaus-red" /> 30m+
+          </span>
         </span>
       </div>
     </div>

@@ -7,9 +7,19 @@
   * {
     @apply border-bauhaus-black;
   }
+  html {
+    overflow-x: clip;
+  }
   body {
     @apply bg-bauhaus-gray text-bauhaus-black font-outfit antialiased;
     font-feature-settings: "tnum" 1;
+    overflow-x: clip;
+  }
+  input,
+  button,
+  select,
+  textarea {
+    font: inherit;
   }
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -25,6 +35,47 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  /* Kontainer standar app: mobile 1 kolom, naik bertahap.
+     NOTE: jangan pakai varian responsif (sm:/xs:) di dalam @apply —
+     tulis sebagai @media polos agar compile tidak gagal saat HMR. */
+  .container-app {
+    @apply mx-auto w-full max-w-md px-4;
+  }
+  .page-title {
+    @apply font-black uppercase tracking-tighter leading-none text-balance text-2xl;
+  }
+  .stat-label {
+    @apply font-bold uppercase tracking-widest opacity-60 leading-tight;
+    font-size: 10px;
+  }
+  .stat-value {
+    @apply font-black tabular-nums whitespace-nowrap leading-tight text-lg;
+  }
+  @media (min-width: 640px) {
+    .container-app {
+      @apply max-w-2xl px-6;
+    }
+    .page-title {
+      @apply text-3xl;
+    }
+    .stat-label {
+      @apply text-xs;
+    }
+    .stat-value {
+      @apply text-xl;
+    }
+  }
+  @media (min-width: 1024px) {
+    .container-app {
+      @apply max-w-4xl;
+    }
+    .page-title {
+      @apply text-4xl;
+    }
+    .stat-value {
+      @apply text-2xl;
+    }
   }
   /* Sembunyikan scrollbar tapi tetap bisa scroll (sentuh, wheel, keyboard) */
   .no-scrollbar {

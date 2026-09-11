@@ -157,11 +157,11 @@ export default function StatsPage() {
   const maxMenit = Math.max(1, ...chartData.map((d) => d.menit));
 
   return (
-    <div className="mx-auto max-w-md space-y-4 py-6 sm:max-w-2xl">
-      <div className="flex items-center justify-between">
-        <h1 className="font-black uppercase tracking-tighter text-3xl">Statistik</h1>
-        <Button variant="outline" size="sm" onClick={load} disabled={loading}>
-          <RefreshCw className={`mr-1 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh
+    <div className="container-app space-y-3 sm:space-y-4 py-3 sm:py-6">
+      <div className="flex flex-wrap items-center gap-2">
+        <h1 className="page-title">Statistik</h1>
+        <Button variant="outline" size="sm" className="ml-auto shrink-0" onClick={load} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 shrink-0 ${loading ? "animate-spin" : ""}`} /> Refresh
         </Button>
       </div>
 
@@ -169,35 +169,35 @@ export default function StatsPage() {
 
       <LevelBar xp={xp} level={level} />
 
-      <div className="grid grid-cols-2 gap-4">
-        <Card deco="blue" className="p-4 text-center">
-          <div className="text-xs font-bold uppercase tracking-widest opacity-60">Sesi</div>
-          <div className="font-black text-2xl tabular-nums">{totalSessions}</div>
-          <div className="text-xs font-medium opacity-60">{guestStats ? "tersimpan di lokal" : "tersimpan di cloud"}</div>
+      <div className="grid grid-cols-2 gap-2 sm:gap-4">
+        <Card deco="blue" className="p-3 sm:p-4 text-center">
+          <div className="stat-label">Sesi</div>
+          <div className="stat-value">{totalSessions}</div>
+          <div className="mt-0.5 text-[10px] sm:text-xs font-medium opacity-60 break-words">{guestStats ? "tersimpan di lokal" : "tersimpan di cloud"}</div>
         </Card>
-        <Card deco="yellow" className="p-4 text-center">
-          <div className="text-xs font-bold uppercase tracking-widest opacity-60">Total Durasi</div>
-          <div className="font-black text-2xl tabular-nums">{Math.floor((guestStats?.totalSec ?? sessions.reduce((s, x) => s + x.durationSec, 0)) / 60)}m</div>
-          <div className="text-xs font-medium opacity-60">{uid ? "tersinkronisasi" : "guest mode"}</div>
+        <Card deco="yellow" className="p-3 sm:p-4 text-center">
+          <div className="stat-label">Total Durasi</div>
+          <div className="stat-value">{Math.floor((guestStats?.totalSec ?? sessions.reduce((s, x) => s + x.durationSec, 0)) / 60)}m</div>
+          <div className="mt-0.5 text-[10px] sm:text-xs font-medium opacity-60 break-words">{uid ? "tersinkronisasi" : "guest mode"}</div>
         </Card>
       </div>
 
       <Card deco="blue">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h3 className="font-black uppercase tracking-tight">Grafik {period === "week" ? "Mingguan" : "Bulanan"}</h3>
-            <Badge variant="muted">{period === "week" ? "7 hari" : "30 hari"}</Badge>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+            <h3 className="font-black uppercase tracking-tight text-sm sm:text-base break-words">Grafik {period === "week" ? "Mingguan" : "Bulanan"}</h3>
+            <Badge variant="muted" className="shrink-0">{period === "week" ? "7 hari" : "30 hari"}</Badge>
           </div>
-          <div className="flex gap-1">
-            <Button variant={period === "week" ? "blue" : "outline"} size="sm" onClick={() => setPeriod("week")} className="h-7 px-3 text-xs">
+          <div className="flex gap-2">
+            <Button variant={period === "week" ? "blue" : "outline"} size="sm" onClick={() => setPeriod("week")} className="min-h-[36px] flex-1 sm:flex-none px-3">
               Minggu
             </Button>
-            <Button variant={period === "month" ? "blue" : "outline"} size="sm" onClick={() => setPeriod("month")} className="h-7 px-3 text-xs">
+            <Button variant={period === "month" ? "blue" : "outline"} size="sm" onClick={() => setPeriod("month")} className="min-h-[36px] flex-1 sm:flex-none px-3">
               Bulan
             </Button>
           </div>
         </div>
-        <div className="mt-4 h-48 w-full border-2 border-bauhaus-black bg-white p-2">
+        <div className="mt-4 h-48 sm:h-56 w-full border-2 border-bauhaus-black bg-white p-2">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
               <CartesianGrid stroke="#121212" strokeDasharray="2 4" opacity={0.1} />
@@ -216,44 +216,44 @@ export default function StatsPage() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="mt-2 flex flex-wrap gap-2 text-xs font-bold uppercase tracking-widest opacity-60">
-          <span className="flex items-center gap-1">
-            <span className="h-3 w-3 border-2 border-bauhaus-black bg-bauhaus-yellow" /> {period === "week" ? "Per hari" : "Per 5 hari"}
+        <div className="mt-2 flex flex-wrap gap-x-2 gap-y-1 text-[11px] sm:text-xs font-bold uppercase tracking-widest opacity-60">
+          <span className="flex items-center gap-1 whitespace-nowrap">
+            <span className="h-3 w-3 shrink-0 border-2 border-bauhaus-black bg-bauhaus-yellow" /> {period === "week" ? "Per hari" : "Per 5 hari"}
           </span>
-          <span>• Merah &gt;30m • Kuning 15-30m • Biru &lt;15m</span>
+          <span className="break-words">• Merah &gt;30m • Kuning 15-30m • Biru &lt;15m</span>
         </div>
         {chartData.every((d) => d.menit === 0) && <p className="mt-2 text-center text-xs font-medium opacity-60">Belum ada sesi di periode ini.</p>}
       </Card>
 
       <Card deco="yellow">
-        <div className="flex items-center justify-between">
-          <h3 className="font-black uppercase tracking-tight">Challenge Mingguan</h3>
-          <Badge variant="blue">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="font-black uppercase tracking-tight text-sm sm:text-base break-words min-w-0 flex-1">Challenge Mingguan</h3>
+          <Badge variant="blue" className="shrink-0">
             {challenges.filter((c) => c.done).length}/{challenges.length} selesai
           </Badge>
         </div>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <div className="mt-3 grid gap-2 sm:gap-3 sm:grid-cols-2">
           {challenges.map((c) => (
             <ChallengeCard key={c.def.id} progress={c} />
           ))}
         </div>
-        <p className="mt-2 text-center text-xs font-medium opacity-60">
+        <p className="mt-2 text-center text-[11px] sm:text-xs font-medium opacity-60">
           Dihitung dari sesi 7 hari terakhir (streak ikut progres harian).
         </p>
       </Card>
 
       <Card deco="red">
-        <div className="flex items-center justify-between">
-          <h3 className="font-black uppercase tracking-tight">Badge ({earned.size}/{badgeDefs.length})</h3>
-          <Badge variant="yellow">{earned.size} diperoleh</Badge>
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="font-black uppercase tracking-tight text-sm sm:text-base break-words min-w-0 flex-1">Badge ({earned.size}/{badgeDefs.length})</h3>
+          <Badge variant="yellow" className="shrink-0">{earned.size} diperoleh</Badge>
         </div>
-        <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
+        <div className="mt-3 grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-3">
           {badgeDefs.map((def) => (
             <BadgeCard key={def.id} def={def} earned={earned.has(def.id)} earnedAt={earnedAtMap.get(def.id)} />
           ))}
         </div>
         {earned.size === 0 && <p className="mt-3 text-center text-xs font-medium opacity-60">Selesaikan sesi pertama untuk badge pertama!</p>}
-        {!uid && <p className="mt-3 rounded border-2 border-bauhaus-black bg-bauhaus-yellow p-2 text-center text-xs font-bold uppercase tracking-widest">Login untuk simpan badge permanen</p>}
+        {!uid && <p className="mt-3 rounded-none border-2 border-bauhaus-black bg-bauhaus-yellow p-2 text-center text-[11px] sm:text-xs font-bold uppercase tracking-widest break-words">Login untuk simpan badge permanen</p>}
       </Card>
     </div>
   );

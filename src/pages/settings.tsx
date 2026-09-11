@@ -146,35 +146,37 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-md space-y-4 py-6 sm:max-w-2xl">
-      <h1 className="font-black uppercase tracking-tighter text-3xl">Pengaturan</h1>
+    <div className="container-app space-y-3 sm:space-y-4 py-3 sm:py-6">
+      <h1 className="page-title">Pengaturan</h1>
 
       {/* Auth */}
       <Card deco="blue">
-        <h3 className="font-black uppercase tracking-tight">Akun</h3>
+        <h3 className="font-black uppercase tracking-tight text-sm sm:text-base">Akun</h3>
         {user ? (
-          <div className="mt-3 flex items-center gap-3">
-            <Avatar photoURL={user.photoURL} displayName={user.displayName} email={user.email} size="lg" />
-            <div className="min-w-0 flex-1">
-              <div className="truncate font-black uppercase tracking-tight">{user.displayName ?? user.email ?? "Anonim"}</div>
-              <div className="truncate text-xs font-medium opacity-60">{user.isAnonymous ? "Anonim (lokal)" : user.email}</div>
-              {user.isAnonymous && <Badge variant="yellow" className="mt-1 text-[10px]">Guest</Badge>}
+          <div className="mt-3 flex flex-col xs:flex-row xs:items-center gap-3">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <Avatar photoURL={user.photoURL} displayName={user.displayName} email={user.email} size="lg" />
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-black uppercase tracking-tight text-sm sm:text-base">{user.displayName ?? user.email ?? "Anonim"}</div>
+                <div className="truncate text-xs font-medium opacity-60">{user.isAnonymous ? "Anonim (lokal)" : user.email}</div>
+                {user.isAnonymous && <Badge variant="yellow" className="mt-1">Guest</Badge>}
+              </div>
             </div>
-            <Button variant="outline" size="sm" className="ml-auto shrink-0" onClick={logout}>
-              <LogOut className="mr-1 h-4 w-4" /> Keluar
+            <Button variant="outline" size="sm" className="w-full xs:w-auto shrink-0" onClick={logout}>
+              <LogOut className="h-4 w-4 shrink-0" /> Keluar
             </Button>
           </div>
         ) : (
-          <p className="mt-2 font-medium opacity-70">Belum login. Masuk untuk sinkronisasi cloud.</p>
+          <p className="mt-2 text-sm font-medium opacity-70">Belum login. Masuk untuk sinkronisasi cloud.</p>
         )}
       </Card>
 
       {/* Suara */}
       <Card deco="red">
-        <h3 className="font-black uppercase tracking-tight">Suara & Getar</h3>
+        <h3 className="font-black uppercase tracking-tight text-sm sm:text-base">Suara & Getar</h3>
         <div className="mt-4 space-y-4">
           <div>
-            <span className="block text-xs font-black uppercase tracking-widest">Nada Alarm</span>
+            <span className="block text-[11px] sm:text-xs font-black uppercase tracking-widest">Nada Alarm</span>
             <div className="mt-1">
               <BauhausSelect
                 label="Nada Alarm"
@@ -189,43 +191,43 @@ export default function SettingsPage() {
             </div>
           </div>
           <div>
-            <label htmlFor="volume-range" className="text-xs font-black uppercase tracking-widest">Volume: {settings.volume}%</label>
-            <input id="volume-range" type="range" min={0} max={100} value={settings.volume} onChange={(e) => update({ volume: parseInt(e.target.value) })} className="mt-1 w-full accent-bauhaus-red" />
+            <label htmlFor="volume-range" className="text-[11px] sm:text-xs font-black uppercase tracking-widest">Volume: {settings.volume}%</label>
+            <input id="volume-range" type="range" min={0} max={100} value={settings.volume} onChange={(e) => update({ volume: parseInt(e.target.value) })} className="mt-1 min-h-[44px] w-full accent-bauhaus-red" />
           </div>
-          <Button variant="yellow" shape="pill" onClick={handleTest} className="w-full">
+          <Button variant="yellow" shape="pill" onClick={handleTest} className="min-h-[48px] w-full">
             Test Suara
           </Button>
 
-          <div className="flex items-center justify-between border-t-2 border-bauhaus-black pt-4">
-            <span className="font-bold uppercase tracking-widest text-sm">Getar</span>
+          <div className="flex min-h-[56px] items-center justify-between gap-3 border-t-2 border-bauhaus-black py-3">
+            <span className="flex-1 pr-2 text-xs sm:text-sm font-bold uppercase tracking-widest">Getar</span>
             <Toggle checked={settings.vibrate} onChange={(v) => update({ vibrate: v })} label="Getar" />
           </div>
-          <div className="flex items-center justify-between">
-            <span className="font-bold uppercase tracking-widest text-sm">Jaga Layar Tetap Menyala</span>
+          <div className="flex min-h-[56px] items-center justify-between gap-3 py-1">
+            <span className="flex-1 pr-2 text-xs sm:text-sm font-bold uppercase tracking-widest">Jaga Layar Tetap Menyala</span>
             <Toggle checked={settings.wakeLock} onChange={(v) => update({ wakeLock: v })} label="Wake Lock" />
           </div>
-          <div className="flex items-center justify-between">
-            <span className="font-bold uppercase tracking-widest text-sm">Notifikasi Background</span>
+          <div className="flex min-h-[56px] items-center justify-between gap-3 py-1">
+            <span className="flex-1 pr-2 text-xs sm:text-sm font-bold uppercase tracking-widest">Notifikasi Background</span>
             <Toggle checked={settings.notifications} onChange={handleNotifToggle} label="Notifikasi Background" />
           </div>
-          {notifDenied && <Badge variant="red">Izin notifikasi ditolak browser — ubah di Site Settings</Badge>}
-          {!("vibrate" in navigator) && <Badge variant="yellow">Getar tidak tersedia di perangkat ini (iOS)</Badge>}
+          {notifDenied && <Badge variant="red" className="whitespace-normal text-left normal-case tracking-normal">Izin notifikasi ditolak browser — ubah di Site Settings</Badge>}
+          {!("vibrate" in navigator) && <Badge variant="yellow" className="whitespace-normal text-left normal-case tracking-normal">Getar tidak tersedia di perangkat ini (iOS)</Badge>}
         </div>
       </Card>
 
       {/* Preset Custom */}
       <Card deco="blue">
-        <div className="flex items-center justify-between">
-          <h3 className="font-black uppercase tracking-tight">Preset Custom</h3>
-          <Badge variant="yellow">{customs.length}/{MAX_CUSTOM_PRESETS}</Badge>
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="font-black uppercase tracking-tight text-sm sm:text-base min-w-0 flex-1 break-words">Preset Custom</h3>
+          <Badge variant="yellow" className="shrink-0 tabular-nums">{customs.length}/{MAX_CUSTOM_PRESETS}</Badge>
         </div>
-        <p className="mt-1 text-xs font-medium opacity-60">
+        <p className="mt-1 text-xs font-medium opacity-60 leading-relaxed">
           Buat preset di halaman Timer (ubah durasi manual → Simpan). {user ? "Tersimpan di cloud." : "Tersimpan lokal, ikut migrasi saat login."}
         </p>
         {presetError && (
           <div className="mt-3 flex items-start gap-2 border-2 border-bauhaus-red bg-red-50 p-3 text-sm">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-bauhaus-red" />
-            <span className="font-medium text-bauhaus-red">{presetError}</span>
+            <span className="font-medium text-bauhaus-red break-words min-w-0">{presetError}</span>
           </div>
         )}
         {customs.length === 0 ? (
@@ -233,15 +235,15 @@ export default function SettingsPage() {
         ) : (
           <div className="mt-3 space-y-2">
             {customs.map((p) => (
-              <div key={p.id} className="flex items-center gap-2 border-2 border-bauhaus-black bg-white p-2 shadow-bauhaus-sm">
+              <div key={p.id} className="flex items-center gap-2 border-2 border-bauhaus-black bg-white p-2 sm:p-3 shadow-bauhaus-sm">
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-black uppercase tracking-tight">{p.name}</div>
-                  <div className="text-xs font-medium tabular-nums opacity-60">
+                  <div className="text-xs font-medium tabular-nums opacity-60 whitespace-nowrap overflow-hidden text-ellipsis">
                     {p.runSec}s / {p.walkSec}s{p.warmupSec > 0 ? ` • W${p.warmupSec}s` : ""}{p.cooldownSec > 0 ? ` • C${p.cooldownSec}s` : ""}
                   </div>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => handleDeletePreset(p.id, p.name)}>
-                  <Trash2 className="mr-1 h-4 w-4" /> Hapus
+                <Button variant="outline" size="sm" className="shrink-0" onClick={() => handleDeletePreset(p.id, p.name)}>
+                  <Trash2 className="h-4 w-4 shrink-0" /> Hapus
                 </Button>
               </div>
             ))}
@@ -251,13 +253,13 @@ export default function SettingsPage() {
 
       {/* Data */}
       <Card deco="yellow">
-        <h3 className="font-black uppercase tracking-tight">Data</h3>
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <Button variant="blue" onClick={handleExport} disabled={exporting}>
-            <Download className="mr-1 h-4 w-4" /> {exporting ? "Mengekspor..." : "Backup Data"}
+        <h3 className="font-black uppercase tracking-tight text-sm sm:text-base">Data</h3>
+        <div className="mt-4 grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-3">
+          <Button variant="blue" className="min-h-[48px] w-full" onClick={handleExport} disabled={exporting}>
+            <Download className="h-4 w-4 shrink-0" /> {exporting ? "Mengekspor..." : "Backup Data"}
           </Button>
-          <Button variant="outline" onClick={() => fileRef.current?.click()}>
-            <Upload className="mr-1 h-4 w-4" /> Pulihkan Data
+          <Button variant="outline" className="min-h-[48px] w-full" onClick={() => fileRef.current?.click()}>
+            <Upload className="h-4 w-4 shrink-0" /> Pulihkan Data
           </Button>
           <input ref={fileRef} type="file" accept=".json,application/json" className="hidden" onChange={handleFile} />
         </div>
@@ -271,42 +273,42 @@ export default function SettingsPage() {
 
         {importPreview && (
           <div className="mt-3 border-2 border-bauhaus-black bg-white p-3 shadow-bauhaus-sm">
-            <div className="text-xs font-black uppercase tracking-widest">Preview Import</div>
-            <div className="mt-1 text-sm font-medium">
+            <div className="text-[11px] sm:text-xs font-black uppercase tracking-widest">Preview Import</div>
+            <div className="mt-1 text-sm font-medium break-words">
               Ditemukan {importPreview.counts.sessions} sesi, {importPreview.counts.presets} preset, {importPreview.counts.badges} badge
             </div>
-            <div className="text-xs opacity-60">Versi {importPreview.file.version} • {new Date(importPreview.file.exportedAt).toLocaleString("id-ID")}</div>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <Button variant="blue" size="sm" onClick={() => handleImport("merge")} disabled={importing}>
+            <div className="text-xs opacity-60 break-words">Versi {importPreview.file.version} • {new Date(importPreview.file.exportedAt).toLocaleString("id-ID")}</div>
+            <div className="mt-3 grid grid-cols-1 xs:grid-cols-2 gap-2">
+              <Button variant="blue" size="sm" className="min-h-[48px] w-full" onClick={() => handleImport("merge")} disabled={importing}>
                 {importing ? "..." : "Merge (skip duplikat)"}
               </Button>
-              <Button variant="red" size="sm" onClick={() => handleImport("replace")} disabled={importing}>
+              <Button variant="red" size="sm" className="min-h-[48px] w-full" onClick={() => handleImport("replace")} disabled={importing}>
                 Replace (hapus dulu)
               </Button>
             </div>
             <div className="mt-2">
               <label htmlFor="import-hapus-input" className="text-xs font-bold uppercase tracking-widest">Ketik HAPUS untuk Replace</label>
-              <input id="import-hapus-input" value={replaceConfirm} onChange={(e) => setReplaceConfirm(e.target.value)} placeholder="HAPUS" autoComplete="off" className="mt-1 w-full border-2 border-bauhaus-black bg-white px-2 py-1 font-bold" />
+              <input id="import-hapus-input" value={replaceConfirm} onChange={(e) => setReplaceConfirm(e.target.value)} placeholder="HAPUS" autoComplete="off" className="mt-1 min-h-[48px] w-full border-2 border-bauhaus-black bg-white px-2 py-1 text-sm sm:text-base font-bold" />
             </div>
-            <Button variant="ghost" size="sm" className="mt-2 w-full" onClick={() => setImportPreview(null)}>
+            <Button variant="ghost" size="sm" className="mt-2 w-full min-h-[44px]" onClick={() => setImportPreview(null)}>
               Batal
             </Button>
           </div>
         )}
 
-        {importResult && <div className="mt-3 border-2 border-bauhaus-black bg-bauhaus-yellow p-3 text-sm font-bold">{importResult}</div>}
+        {importResult && <div className="mt-3 border-2 border-bauhaus-black bg-bauhaus-yellow p-3 text-sm font-bold break-words">{importResult}</div>}
 
         <div className="mt-4 border-2 border-bauhaus-red bg-red-50 p-3">
-          <div className="text-xs font-black uppercase tracking-widest text-bauhaus-red">Zona Bahaya</div>
-          <p className="mt-1 text-xs font-medium opacity-60">Hapus akan reset XP/Level/Streak & hapus semua sesi, badge, preset custom. Tidak bisa undo kecuali punya Export.</p>
+          <div className="text-[11px] sm:text-xs font-black uppercase tracking-widest text-bauhaus-red">Zona Bahaya</div>
+          <p className="mt-1 text-xs font-medium opacity-60 leading-relaxed">Hapus akan reset XP/Level/Streak & hapus semua sesi, badge, preset custom. Tidak bisa undo kecuali punya Export.</p>
           <div className="mt-3">
             <label htmlFor="danger-hapus-input" className="text-xs font-bold uppercase tracking-widest">Ketik HAPUS untuk konfirmasi</label>
-            <input id="danger-hapus-input" value={replaceConfirm} onChange={(e) => setReplaceConfirm(e.target.value)} placeholder="HAPUS" autoComplete="off" className="mt-1 w-full border-2 border-bauhaus-black bg-white px-2 py-1 font-bold" />
+            <input id="danger-hapus-input" value={replaceConfirm} onChange={(e) => setReplaceConfirm(e.target.value)} placeholder="HAPUS" autoComplete="off" className="mt-1 min-h-[48px] w-full border-2 border-bauhaus-black bg-white px-2 py-1 text-sm sm:text-base font-bold" />
           </div>
           <Button
             variant="red"
             size="sm"
-            className="mt-2 w-full"
+            className="mt-2 w-full min-h-[48px]"
             disabled={replaceConfirm !== "HAPUS"}
             onClick={async () => {
               if (replaceConfirm !== "HAPUS") return;
@@ -347,9 +349,9 @@ export default function SettingsPage() {
       </Card>
 
       <Card deco="blue">
-        <h3 className="font-black uppercase tracking-tight">Tentang</h3>
-        <p className="mt-2 text-sm font-medium opacity-70">RunEase. Dibuat dari pelari, untuk pelari. Berfokus pada kemudahan agar kamu bisa berlari tanpa gangguan.</p>
-        <p className="mt-2 text-xs font-bold uppercase tracking-widest opacity-50">© 2026 RunEase • Developed by Husni Mubarok</p>
+        <h3 className="font-black uppercase tracking-tight text-sm sm:text-base">Tentang</h3>
+        <p className="mt-2 text-sm font-medium opacity-70 leading-relaxed">RunEase. Dibuat dari pelari, untuk pelari. Berfokus pada kemudahan agar kamu bisa berlari tanpa gangguan.</p>
+        <p className="mt-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-50 break-words">© 2026 RunEase • Developed by Husni Mubarok</p>
       </Card>
     </div>
   );

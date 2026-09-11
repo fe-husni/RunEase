@@ -7,9 +7,12 @@ export function TopNav() {
   const user = useUserStore((s) => s.user);
   const loading = useUserStore((s) => s.loading);
   return (
-    <nav aria-label="Navigasi utama" className="sticky top-0 z-50 flex items-center justify-between border-b-4 border-bauhaus-black bg-bauhaus-gray px-4 py-3 sm:px-6 lg:px-8">
-      <Link to="/" aria-label="RunEase - beranda" className="flex items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bauhaus-blue">
-        <AppLogo />
+    <nav aria-label="Navigasi utama" className="sticky top-0 z-50 flex h-14 sm:h-16 items-center justify-between border-b-4 border-bauhaus-black bg-bauhaus-gray px-4 sm:px-6 lg:px-8">
+      <Link to="/" aria-label="RunEase - beranda" className="flex min-h-[44px] items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bauhaus-blue">
+        <AppLogo size="sm" className="sm:hidden" />
+        <span className="hidden sm:block">
+          <AppLogo size="md" />
+        </span>
       </Link>
       <div className="hidden items-center gap-6 font-bold uppercase tracking-wider text-sm md:flex">
         <Link to="/timer" className="transition-colors hover:text-bauhaus-red focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bauhaus-blue">
@@ -31,7 +34,7 @@ export function TopNav() {
         ) : user ? (
           <div className="flex items-center gap-2">
             <Avatar photoURL={user.photoURL} displayName={user.displayName} email={user.email} size="sm" />
-            <span className="hidden text-xs font-bold uppercase tracking-widest sm:block">{user.displayName ?? user.email ?? (user.isAnonymous ? "Anonim" : "User")}</span>
+            <span className="hidden max-w-[120px] truncate text-[11px] font-bold uppercase tracking-widest xs:block">{user.displayName ?? user.email ?? (user.isAnonymous ? "Anonim" : "User")}</span>
           </div>
         ) : (
           <Link
@@ -52,7 +55,7 @@ export function TopNav() {
         {loading ? (
           <div className="h-8 w-20 animate-pulse border-2 border-bauhaus-black bg-bauhaus-muted" />
         ) : user ? (
-          <Link to="/settings" className="flex items-center gap-2">
+          <Link to="/settings" aria-label="Pengaturan akun" className="flex min-h-[44px] min-w-[44px] items-center justify-center p-1">
             <Avatar photoURL={user.photoURL} displayName={user.displayName} email={user.email} size="sm" />
           </Link>
         ) : (

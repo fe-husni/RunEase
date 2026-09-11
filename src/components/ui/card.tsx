@@ -18,7 +18,7 @@ export function Card({ className, children, deco = "red", decoShape = "circle", 
   return (
     <div
       className={cn(
-        "relative border-4 border-bauhaus-black bg-white p-6 shadow-bauhaus-lg transition-transform duration-200 hover:-translate-y-1 sm:p-8",
+        "relative border-2 sm:border-4 border-bauhaus-black bg-white p-4 sm:p-6 lg:p-8 shadow-bauhaus sm:shadow-bauhaus-lg transition-transform duration-200 motion-safe:sm:hover:-translate-y-1",
         "rounded-none",
         className
       )}

@@ -13,39 +13,39 @@ export default function LandingPage() {
       {/* Hero - Split Bauhaus */}
       <section className="grid min-h-[85vh] grid-cols-1 border-b-4 border-bauhaus-black lg:grid-cols-2">
         {/* Left - White */}
-        <div className="relative flex flex-col justify-center bg-white p-8 sm:p-12 lg:p-16">
+        <div className="relative flex flex-col justify-center bg-white p-5 xs:p-8 sm:p-12 lg:p-16">
           <DotGrid />
           <div className="relative">
-            <Badge variant="yellow" className="mb-4">★ 4.9/5 • 2.000+ Pelari Pemula</Badge>
-            <h1 className="font-black uppercase leading-[0.85] tracking-tighter text-5xl sm:text-6xl lg:text-7xl">
+            <Badge variant="yellow" className="mb-4 whitespace-normal text-left">★ 4.9/5 • 2.000+ Pelari Pemula</Badge>
+            <h1 className="font-black uppercase leading-[0.85] tracking-tighter text-balance text-4xl xs:text-5xl sm:text-6xl lg:text-7xl">
               STOP LIHAT <span className="text-bauhaus-red">JAM.</span>
               <br />
               MULAI LARI.
             </h1>
-            <p className="mt-4 max-w-md font-medium leading-relaxed text-bauhaus-black/70"><span className="font-black text-bauhaus-black">Fokus saja pada langkah dan napasmu.</span> Biarkan timer pintar ini yang mengatur kapan kamu harus lari dan jalan santai.{" "}
+            <p className="mt-4 max-w-md text-sm sm:text-base font-medium leading-relaxed text-bauhaus-black/70"><span className="font-black text-bauhaus-black">Fokus saja pada langkah dan napasmu.</span> Biarkan timer pintar ini yang mengatur kapan kamu harus lari dan jalan santai.{" "}
             <span className="bg-bauhaus-yellow px-1 font-black"> Tetap menyala & bersuara meski HP dikantongi.</span>
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/timer">
-                <Button variant="red" shape="square" size="sm" className="lg:px-8 lg:py-4 lg:text-base">
-                Mulai Lari Sekarang <ArrowRight className="ml-2 h-4 w-4 lg:h-5 lg:w-5" />
+            <div className="mt-6 flex flex-col xs:flex-row xs:flex-wrap gap-2 sm:gap-3">
+              <Link to="/timer" className="w-full xs:w-auto">
+                <Button variant="red" shape="square" size="sm" className="min-h-[52px] w-full xs:w-auto justify-center lg:px-8 lg:py-4 lg:text-base">
+                Mulai Lari Sekarang <ArrowRight className="h-4 w-4 shrink-0 lg:h-5 lg:w-5" />
                 </Button>
               </Link>
-              <a href="#cara-kerja">
-                <Button variant="outline" shape="square" size="sm" className="lg:px-8 lg:py-4 lg:text-base">
+              <a href="#cara-kerja" className="w-full xs:w-auto">
+                <Button variant="outline" shape="square" size="sm" className="min-h-[52px] w-full xs:w-auto justify-center lg:px-8 lg:py-4 lg:text-base">
                 Pelajari Fiturnya
                 </Button>
               </a>
             </div>
-            <div className="mt-6 flex flex-wrap gap-3 text-xs font-bold uppercase tracking-widest">
-              <span className="flex items-center gap-1 rounded-full border-2 border-bauhaus-black bg-bauhaus-gray px-3 py-1">
-                <Check className="h-4 w-4 text-bauhaus-red" /> Tanpa Ribet
+            <div className="mt-6 flex flex-wrap gap-2 sm:gap-3 text-[11px] sm:text-xs font-bold uppercase tracking-widest">
+              <span className="flex items-center gap-1 rounded-full border-2 border-bauhaus-black bg-bauhaus-gray px-3 py-1.5 min-h-[36px]">
+                <Check className="h-4 w-4 shrink-0 text-bauhaus-red" /> Tanpa Ribet
               </span>
-              <span className="flex items-center gap-1 rounded-full border-2 border-bauhaus-black bg-white px-3 py-1">
-                <Check className="h-4 w-4 text-bauhaus-blue" /> Langsung Jalan
+              <span className="flex items-center gap-1 rounded-full border-2 border-bauhaus-black bg-white px-3 py-1.5 min-h-[36px]">
+                <Check className="h-4 w-4 shrink-0 text-bauhaus-blue" /> Langsung Jalan
               </span>
-              <span className="flex items-center gap-1 rounded-full border-2 border-bauhaus-black bg-bauhaus-yellow px-3 py-1">
-                <Check className="h-4 w-4" /> 100% Gratis
+              <span className="flex items-center gap-1 rounded-full border-2 border-bauhaus-black bg-bauhaus-yellow px-3 py-1.5 min-h-[36px]">
+                <Check className="h-4 w-4 shrink-0" /> 100% Gratis
               </span>
             </div>
           </div>
@@ -89,32 +89,32 @@ export default function LandingPage() {
 
       {/* Social Proof - Yellow */}
       <Section color="yellow">
-        <div className="grid grid-cols-2 gap-4 border-4 border-bauhaus-black bg-white p-4 shadow-bauhaus-lg sm:grid-cols-4 sm:p-0 sm:shadow-none">
+        <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-0 border-0 sm:border-4 sm:border-bauhaus-black bg-transparent sm:bg-white sm:shadow-none shadow-none p-0 sm:p-0">
           {[
             { value: "Tanpa Install", label: "Akses langsung dari browser, hemat memori HP." },
             { value: "Anti-Mati", label: "Alarm tetap bunyi meski layar HP dimatikan." },
             { value: "Siap Pakai", label: "Ada 5 Preset (Pola Lari) khusus pemula hingga pro." },
             { value: "12 Medali", label: "Kumpulkan lencana setiap pencapaian larimu." },
           ].map((s) => (
-            <div key={s.label} className="border-b-2 border-bauhaus-black p-4 text-center last:border-b-0 sm:border-b-0 sm:border-r-2 sm:last:border-r-0">
-              <div className="font-black text-2xl sm:text-3xl">{s.value}</div>
-              <div className="text-xs font-bold uppercase tracking-widest opacity-60">{s.label}</div>
+            <div key={s.label} className="border-2 border-bauhaus-black bg-white p-4 text-center shadow-bauhaus-sm sm:border-0 sm:border-r-2 sm:shadow-none sm:last:border-r-0">
+              <div className="font-black text-xl sm:text-3xl break-words leading-tight">{s.value}</div>
+              <div className="mt-1 text-[11px] sm:text-xs font-bold uppercase tracking-widest opacity-60 leading-relaxed">{s.label}</div>
             </div>
           ))}
         </div>
-        <p className="mt-3 text-center text-xs font-bold uppercase tracking-widest opacity-60">Dipakai pelari pemula yang dulu kapok, sekarang ketagihan</p>
+        <p className="mt-3 text-center text-[11px] sm:text-xs font-bold uppercase tracking-widest opacity-60 px-2">Dipakai pelari pemula yang dulu kapok, sekarang ketagihan</p>
       </Section>
 
       {/* Features - White + Real Images */}
       <Section color="white">
-        <div className="text-center">
+        <div className="text-center px-2">
           <Badge variant="blue">Kenapa Harus RunEase?</Badge>
-          <h2 className="mx-auto mt-3 max-w-2xl font-black uppercase leading-[0.9] tracking-tighter text-3xl sm:text-4xl">BEDA DARI TIMER HP BIASA</h2>
-          <p className="mx-auto mt-3 max-w-xl font-medium opacity-70">
+          <h2 className="mx-auto mt-3 max-w-2xl font-black uppercase leading-[0.9] tracking-tighter text-balance text-2xl xs:text-3xl sm:text-4xl">BEDA DARI TIMER HP BIASA</h2>
+          <p className="mx-auto mt-3 max-w-xl text-sm sm:text-base font-medium opacity-70">
             Timer HP cuma hitung mundur. <span className="font-black">RunEase paham pelari:</span> kapan harus lari, kapan jalan, kapan istirahat.
           </p>
         </div>
-        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[
             {
               icon: Zap,
@@ -159,11 +159,11 @@ export default function LandingPage() {
 
       {/* Gallery - Bauhaus Image Grid */}
       <Section color="gray">
-        <div className="text-center">
+        <div className="text-center px-2">
           <Badge variant="red">Di Lapangan</Badge>
-          <h2 className="mt-3 font-black uppercase tracking-tight text-2xl">BUKAN TEORI, SUDAH DICOBA</h2>
+          <h2 className="mt-3 font-black uppercase tracking-tight text-balance text-xl xs:text-2xl">BUKAN TEORI, SUDAH DICOBA</h2>
         </div>
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div className="group relative overflow-hidden border-4 border-bauhaus-black shadow-bauhaus">
             <img
               src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&auto=format&fit=crop&q=60"
@@ -205,12 +205,12 @@ export default function LandingPage() {
 
       {/* How it Works - Red */}
       <Section color="red">
-        <div id="cara-kerja" className="text-center text-white">
+        <div id="cara-kerja" className="text-center text-white px-2">
           <Badge variant="yellow">Cara Kerja</Badge>
-          <h2 className="mt-3 font-black uppercase tracking-tighter text-3xl sm:text-4xl">Dirancang Agar Kamu Tidak Mudah Menyerah</h2>
-          <p className="mx-auto mt-2 max-w-xl font-medium opacity-90">Baru mulai rutin olahraga? Jangan paksakan diri. Gunakan fitur Preset Pemula untuk kombinasi jalan dan lari yang paling nyaman untuk tubuhmu. Pelan-pelan, dari pelari biasa sampe jadi pelari kalcer 😂</p>
+          <h2 className="mt-3 font-black uppercase tracking-tighter text-balance text-2xl xs:text-3xl sm:text-4xl">Dirancang Agar Kamu Tidak Mudah Menyerah</h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm sm:text-base font-medium opacity-90">Baru mulai rutin olahraga? Jangan paksakan diri. Gunakan fitur Preset Pemula untuk kombinasi jalan dan lari yang paling nyaman untuk tubuhmu. Pelan-pelan, dari pelari biasa sampe jadi pelari kalcer 😂</p>
         </div>
-        <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[
             {
               n: "01",
@@ -252,29 +252,29 @@ export default function LandingPage() {
 
       {/* Gamifikasi - White + Image */}
       <Section color="white">
-        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
-          <div>
+        <div className="grid grid-cols-1 items-center gap-6 sm:gap-8 lg:grid-cols-2">
+          <div className="min-w-0">
             <Badge variant="red">Kenapa Ketagihan?</Badge>
-            <h2 className="mt-3 font-black uppercase leading-[0.9] tracking-tighter text-3xl sm:text-4xl">
+            <h2 className="mt-3 font-black uppercase leading-[0.9] tracking-tighter text-balance text-2xl xs:text-3xl sm:text-4xl">
             Lari Jadi Tantangan Paling Seru
             </h2>
-            <p className="mt-3 font-medium opacity-70">
+            <p className="mt-3 text-sm sm:text-base font-medium opacity-70">
             Jangan biarkan rutinitasmu bolong! Jaga kobaran api Streak harianmu, kumpulkan XP, naikkan level, dan pamerkan lencana pencapaianmu. Hari ini rebahan? Maaf, XP menunggu!
             </p>
-            <div className="mt-4 flex gap-2">
-              <span className="rounded-full border-2 border-bauhaus-black bg-bauhaus-yellow px-3 py-1 text-xs font-black uppercase">🔥 Streak 7 → Badge</span>
-              <span className="rounded-full border-2 border-bauhaus-black bg-white px-3 py-1 text-xs font-black uppercase">+55 XP / Sesi</span>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="rounded-full border-2 border-bauhaus-black bg-bauhaus-yellow px-3 py-1.5 min-h-[36px] flex items-center text-[11px] sm:text-xs font-black uppercase">🔥 Streak 7 → Badge</span>
+              <span className="rounded-full border-2 border-bauhaus-black bg-white px-3 py-1.5 min-h-[36px] flex items-center text-[11px] sm:text-xs font-black uppercase">+55 XP / Sesi</span>
             </div>
-            <div className="mt-6 overflow-hidden border-4 border-bauhaus-black shadow-bauhaus">
+            <div className="mt-6 overflow-hidden border-2 sm:border-4 border-bauhaus-black shadow-bauhaus">
               <img
                 src="https://images.unsplash.com/photo-1502904550040-7534597429ae?w=600&auto=format&fit=crop&q=60"
                 alt="Perayaan finis lari dengan medali"
                 loading="lazy"
-                className="h-48 w-full object-cover transition-transform hover:scale-105"
+                className="h-40 xs:h-48 w-full object-cover transition-transform hover:scale-105"
               />
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 xs:grid-cols-3 gap-2 sm:gap-3">
             {[
               { name: "Langkah Pertama", sub: "Sesi 1" },
               { name: "Konsisten 7", sub: "7 hari" },
@@ -297,22 +297,22 @@ export default function LandingPage() {
 
       {/* Final CTA - Yellow */}
       <Section color="yellow">
-        <div className="relative overflow-hidden border-4 border-bauhaus-black bg-white p-8 text-center shadow-bauhaus-lg sm:p-12">
+        <div className="relative overflow-hidden border-2 sm:border-4 border-bauhaus-black bg-white p-5 xs:p-8 text-center shadow-bauhaus sm:p-12">
           <DecoSquare className="absolute -right-6 -top-6 opacity-10" size={80} rotate />
           <DecoCircle className="absolute -bottom-6 -left-6 opacity-10" size={80} />
           <Badge variant="red" className="mx-auto">100% Gratis</Badge>
-          <h2 className="mx-auto mt-3 max-w-xl font-black uppercase leading-[0.9] tracking-tighter text-3xl sm:text-5xl">SIAP JADI VERSI TERBAIKMU?</h2>
-          <p className="mx-auto mt-3 max-w-md font-medium opacity-70">
+          <h2 className="mx-auto mt-3 max-w-xl font-black uppercase leading-[0.9] tracking-tighter text-balance text-2xl xs:text-3xl sm:text-5xl">SIAP JADI VERSI TERBAIKMU?</h2>
+          <p className="mx-auto mt-3 max-w-md text-sm sm:text-base font-medium opacity-70">
             Ratusan langkah besar dimulai dari satu langkah kecil hari ini. Yuk, mulai rutinitas sehatmu tanpa ribet.
           </p>
-          <div className="mt-6 flex justify-center gap-3">
-            <Link to="/timer">
-              <Button variant="red" shape="square" size="lg">
-                Buka Timer Sekarang <ArrowRight className="ml-2 h-4 w-4" />
+          <div className="mt-6 flex flex-col xs:flex-row justify-center gap-2 sm:gap-3">
+            <Link to="/timer" className="w-full xs:w-auto">
+              <Button variant="red" shape="square" size="sm" className="min-h-[52px] w-full xs:w-auto justify-center lg:px-8 lg:py-4 lg:text-base">
+                Buka Timer Sekarang <ArrowRight className="h-4 w-4 shrink-0 lg:h-5 lg:w-5" />
               </Button>
             </Link>
-            <Link to="/login">
-              <Button variant="outline" shape="square" size="lg">
+            <Link to="/login" className="w-full xs:w-auto">
+              <Button variant="outline" shape="square" size="sm" className="min-h-[52px] w-full xs:w-auto justify-center lg:px-8 lg:py-4 lg:text-base">
                 Simpan Progres
               </Button>
             </Link>

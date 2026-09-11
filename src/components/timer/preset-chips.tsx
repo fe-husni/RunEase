@@ -12,7 +12,7 @@ interface Props {
 export function PresetChips({ presets, activeId, onSelect, customConfig }: Props) {
   const customActive = activeId === "custom";
   return (
-    <div className="no-scrollbar flex gap-2 overflow-x-auto border-b-4 border-bauhaus-black px-4 py-3">
+    <div className="no-scrollbar -mx-4 flex snap-x gap-2 overflow-x-auto border-b-4 border-bauhaus-black px-4 py-3 sm:-mx-6 sm:px-6">
       {presets.map((p) => {
         const isActive = p.id === activeId;
         return (
@@ -20,7 +20,7 @@ export function PresetChips({ presets, activeId, onSelect, customConfig }: Props
             key={p.id}
             onClick={() => onSelect(p)}
             className={cn(
-              "shrink-0 rounded-full border-2 px-4 py-2 text-xs font-black uppercase tracking-widest shadow-bauhaus-sm transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-none",
+              "min-h-[44px] shrink-0 snap-start rounded-full border-2 px-3 sm:px-4 py-2 text-[11px] sm:text-xs font-black uppercase tracking-widest shadow-bauhaus-sm transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-none",
               isActive
                 ? p.color === "red"
                   ? "border-bauhaus-black bg-bauhaus-red text-white"
@@ -56,7 +56,7 @@ export function PresetChips({ presets, activeId, onSelect, customConfig }: Props
           }
         }}
         className={cn(
-          "shrink-0 rounded-full border-2 px-4 py-2 text-xs font-black uppercase tracking-widest shadow-bauhaus-sm transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-none",
+          "min-h-[44px] shrink-0 snap-start rounded-full border-2 px-3 sm:px-4 py-2 text-[11px] sm:text-xs font-black uppercase tracking-widest shadow-bauhaus-sm transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-none",
           customActive
             ? "border-bauhaus-black bg-bauhaus-black text-white"
             : "border-dashed border-bauhaus-black bg-bauhaus-gray text-bauhaus-black hover:bg-white"

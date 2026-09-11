@@ -11,23 +11,23 @@ export function ChallengeCard({ progress }: ChallengeCardProps) {
   return (
     <div
       className={cn(
-        "border-2 border-bauhaus-black bg-white p-3 shadow-bauhaus-sm",
+        "border-2 border-bauhaus-black bg-white p-3 shadow-bauhaus-sm min-w-0",
         done && "bg-bauhaus-yellow"
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="truncate text-xs font-black uppercase tracking-widest">{def.title}</div>
+        <div className="min-w-0 flex-1 truncate text-[11px] sm:text-xs font-black uppercase tracking-widest">{def.title}</div>
         {done ? (
-          <Badge variant="blue" className="shrink-0 text-[10px]">
+          <Badge variant="blue" className="shrink-0">
             Selesai
           </Badge>
         ) : (
-          <Badge variant="outline" className="shrink-0 text-[10px]">
+          <Badge variant="outline" className="shrink-0">
             {def.period === "week" ? "Mingguan" : "Bulanan"}
           </Badge>
         )}
       </div>
-      <p className="mt-1 text-xs font-medium opacity-60">{def.desc}</p>
+      <p className="mt-1 text-xs font-medium opacity-60 break-words leading-relaxed">{def.desc}</p>
       <div
         className="mt-2 h-3 w-full border-2 border-bauhaus-black bg-white"
         role="progressbar"
@@ -41,7 +41,7 @@ export function ChallengeCard({ progress }: ChallengeCardProps) {
           style={{ width: `${pct}%` }}
         />
       </div>
-      <div className="mt-1 text-xs font-bold uppercase tracking-widest tabular-nums">
+      <div className="mt-1 text-[11px] sm:text-xs font-bold uppercase tracking-widest tabular-nums break-words">
         {current}/{target} {def.unit} • {pct}%
       </div>
     </div>

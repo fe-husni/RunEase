@@ -270,40 +270,40 @@ export default function TimerPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-md space-y-4 sm:max-w-2xl">
+    <div className="container-app space-y-3 sm:space-y-4 py-3 sm:py-6">
       {/* Preset chips - only when idle */}
       {!isRunning && <PresetChips presets={allPresets} activeId={activePresetId} onSelect={handleSelectPreset} customConfig={{ runSec: config.runSec, walkSec: config.walkSec }} />}
 
       {/* Simpan custom sebagai preset - only when idle + manual custom */}
       {!isRunning && activePresetId === "custom" && (
-        <Card deco="blue" className="p-4">
-          <div className="text-xs font-black uppercase tracking-widest">Simpan Custom ini?</div>
-          <p className="mt-1 text-sm font-medium tabular-nums opacity-70">
+        <Card deco="blue" className="p-3 sm:p-4">
+          <div className="text-[11px] sm:text-xs font-black uppercase tracking-widest">Simpan Custom ini?</div>
+          <p className="mt-1 text-sm font-medium tabular-nums opacity-70 break-words">
             {config.runSec}s / {config.walkSec}s{config.warmupSec > 0 ? ` • Warmup ${config.warmupSec}s` : ""}{config.cooldownSec > 0 ? ` • Cooldown ${config.cooldownSec}s` : ""}
           </p>
           {presetError && (
-            <div className="mt-2 border-2 border-bauhaus-red bg-red-50 p-2 text-sm font-medium text-bauhaus-red">{presetError}</div>
+            <div className="mt-2 border-2 border-bauhaus-red bg-red-50 p-2 text-sm font-medium text-bauhaus-red break-words">{presetError}</div>
           )}
-          <div className="mt-2 flex gap-2">
+          <div className="mt-2 flex flex-col xs:flex-row gap-2">
             <input
               value={customName}
               onChange={(e) => setCustomName(e.target.value)}
               placeholder="Nama preset, mis. Pagi 3:1"
               aria-label="Nama preset custom"
               maxLength={24}
-              className="min-w-0 flex-1 border-2 border-bauhaus-black bg-white px-3 py-2 font-bold shadow-bauhaus-sm"
+              className="min-h-[48px] min-w-0 flex-1 border-2 border-bauhaus-black bg-white px-3 py-2 text-sm sm:text-base font-bold shadow-bauhaus-sm"
             />
-            <Button variant="blue" size="sm" onClick={handleSaveCustom} disabled={savingPreset || !customName.trim()}>
+            <Button variant="blue" size="sm" className="w-full xs:w-auto shrink-0" onClick={handleSaveCustom} disabled={savingPreset || !customName.trim()}>
               {savingPreset ? "..." : "Simpan"}
             </Button>
           </div>
-          <p className="mt-1 text-xs font-medium opacity-60">{customs.length}/{MAX_CUSTOM_PRESETS} preset tersimpan{user ? "" : " (lokal)"}</p>
+          <p className="mt-1 text-[11px] sm:text-xs font-medium opacity-60">{customs.length}/{MAX_CUSTOM_PRESETS} preset tersimpan{user ? "" : " (lokal)"}</p>
         </Card>
       )}
 
       {/* WakeLock indicator */}
       {isRunning && (
-        <div className="flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-widest">
+        <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] sm:text-xs font-bold uppercase tracking-widest">
           <span className={`h-2 w-2 rounded-full ${wakeActive ? "bg-green-500" : "bg-yellow-500"}`} />
           {wakeActive ? "Layar tetap menyala" : "Menyala..."}
           <span className="opacity-60">•</span>
@@ -325,7 +325,7 @@ export default function TimerPage() {
 
       {/* Time Inputs - only when idle */}
       {!isRunning && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4">
           <TimeInput label="Lari" valueSec={config.runSec} onChange={(v) => handleManualChange("runSec", v)} color="red" />
           <TimeInput label="Jalan" valueSec={config.walkSec} onChange={(v) => handleManualChange("walkSec", v)} color="blue" />
         </div>
@@ -333,11 +333,11 @@ export default function TimerPage() {
 
       {/* Advanced: Warmup/Cooldown collapsed */}
       {!isRunning && (
-        <Card deco="yellow" className="p-4">
-          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest opacity-70">
-            <Settings2 className="h-4 w-4" /> Opsi Lanjutan
+        <Card deco="yellow" className="p-3 sm:p-4">
+          <div className="flex items-center gap-2 text-[11px] sm:text-xs font-black uppercase tracking-widest opacity-70">
+            <Settings2 className="h-4 w-4 shrink-0" /> Opsi Lanjutan
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-4">
+          <div className="mt-3 grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label htmlFor="warmup-input" className="mb-1 block text-[10px] font-bold uppercase tracking-widest">Warmup (detik)</label>
               <input
@@ -351,7 +351,7 @@ export default function TimerPage() {
                   setActivePresetId("custom");
                   setConfig({ warmupSec: Math.max(0, Math.min(600, parseInt(e.target.value) || 0)) });
                 }}
-                className="w-full border-2 border-bauhaus-black bg-white px-3 py-2 font-bold shadow-bauhaus-sm"
+                className="min-h-[48px] w-full border-2 border-bauhaus-black bg-white px-3 py-2 text-sm sm:text-base font-bold shadow-bauhaus-sm"
               />
             </div>
             <div>
@@ -367,7 +367,7 @@ export default function TimerPage() {
                   setActivePresetId("custom");
                   setConfig({ cooldownSec: Math.max(0, Math.min(600, parseInt(e.target.value) || 0)) });
                 }}
-                className="w-full border-2 border-bauhaus-black bg-white px-3 py-2 font-bold shadow-bauhaus-sm"
+                className="min-h-[48px] w-full border-2 border-bauhaus-black bg-white px-3 py-2 text-sm sm:text-base font-bold shadow-bauhaus-sm"
               />
             </div>
           </div>
@@ -387,7 +387,7 @@ export default function TimerPage() {
       />
 
       {/* Stats ringkas */}
-      <div className="flex flex-wrap justify-center gap-2 text-xs font-bold uppercase tracking-widest opacity-50">
+      <div className="flex flex-wrap justify-center gap-x-2 gap-y-1 text-[11px] sm:text-xs font-bold uppercase tracking-widest opacity-50 text-center">
         <span className="flex items-center gap-1">
           <Clock className="h-3 w-3" /> Preset: {allPresets.find((p) => p.id === activePresetId)?.name ?? "Custom"}
         </span>
@@ -406,7 +406,7 @@ export default function TimerPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-bauhaus-black/60 p-4">
           <Card
             deco={lastSession ? "red" : "yellow"}
-            className="w-full max-w-sm"
+            className="w-[calc(100%-2rem)] max-w-sm p-4 sm:p-6"
             role="dialog"
             aria-modal="true"
             aria-labelledby="session-summary-title"
@@ -421,30 +421,30 @@ export default function TimerPage() {
                 <Badge variant="yellow" className="mb-3">
                   Sesi Selesai!
                 </Badge>
-                <h2 id="session-summary-title" className="font-black uppercase tracking-tighter text-2xl">Keren! 🔥</h2>
-                <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-                  <div className="border-2 border-bauhaus-black bg-bauhaus-gray p-3">
-                    <div className="text-xs font-bold uppercase tracking-widest opacity-60">Durasi</div>
-                    <div className="font-black text-xl tabular-nums">{formatTime(lastSession.durationSec)}</div>
+                <h2 id="session-summary-title" className="font-black uppercase tracking-tighter text-2xl text-balance">Keren! 🔥</h2>
+                <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3 text-center">
+                  <div className="border-2 border-bauhaus-black bg-bauhaus-gray p-2 sm:p-3">
+                    <div className="stat-label">Durasi</div>
+                    <div className="stat-value">{formatTime(lastSession.durationSec)}</div>
                   </div>
-                  <div className="border-2 border-bauhaus-black bg-bauhaus-gray p-3">
-                    <div className="text-xs font-bold uppercase tracking-widest opacity-60">Set</div>
-                    <div className="font-black text-xl">{lastSession.setsCompleted}</div>
+                  <div className="border-2 border-bauhaus-black bg-bauhaus-gray p-2 sm:p-3">
+                    <div className="stat-label">Set</div>
+                    <div className="stat-value">{lastSession.setsCompleted}</div>
                   </div>
-                  <div className="border-2 border-bauhaus-black bg-bauhaus-yellow p-3">
-                    <div className="text-xs font-bold uppercase tracking-widest opacity-60">XP</div>
-                    <div className="font-black text-xl">+{lastSession.xpEarned}</div>
+                  <div className="border-2 border-bauhaus-black bg-bauhaus-yellow p-2 sm:p-3">
+                    <div className="stat-label">XP</div>
+                    <div className="stat-value">+{lastSession.xpEarned}</div>
                   </div>
                 </div>
-                <p className="mt-2 text-xs font-medium opacity-60">{lastSession.presetSnapshot.name} • {lastSession.presetSnapshot.runSec}s / {lastSession.presetSnapshot.walkSec}s</p>
+                <p className="mt-2 text-xs font-medium opacity-60 break-words">{lastSession.presetSnapshot.name} • {lastSession.presetSnapshot.runSec}s / {lastSession.presetSnapshot.walkSec}s</p>
                 <p className="mt-4 text-sm font-medium opacity-70">
                   {user ? "Tersimpan di cloud & lokal." : "Tersimpan lokal. Login Google untuk sinkronisasi."}
                 </p>
-                <div className="mt-6 grid grid-cols-2 gap-3">
-                  <Button variant="outline" shape="square" onClick={() => setShowSummary(false)}>
+                <div className="mt-6 grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-3">
+                  <Button variant="outline" shape="square" className="min-h-[48px] w-full" onClick={() => setShowSummary(false)}>
                     Tutup
                   </Button>
-                  <Button variant="red" shape="square" onClick={() => setShowSummary(false)}>
+                  <Button variant="red" shape="square" className="min-h-[48px] w-full" onClick={() => setShowSummary(false)}>
                     Lagi!
                   </Button>
                 </div>

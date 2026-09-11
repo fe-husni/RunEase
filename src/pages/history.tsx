@@ -49,44 +49,44 @@ export default function HistoryPage() {
   }, [filtered]);
 
   return (
-    <div className="mx-auto max-w-md space-y-4 py-6 sm:max-w-2xl">
-      <div className="flex items-center justify-between">
-        <h1 className="font-black uppercase tracking-tighter text-3xl">Riwayat</h1>
-        <Button variant="outline" size="sm" onClick={() => fetch(uid)} disabled={loading}>
-          <RefreshCw className={`mr-1 h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh
+    <div className="container-app space-y-3 sm:space-y-4 py-3 sm:py-6">
+      <div className="flex flex-wrap items-center gap-2">
+        <h1 className="page-title">Riwayat</h1>
+        <Button variant="outline" size="sm" className="ml-auto shrink-0" onClick={() => fetch(uid)} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 shrink-0 ${loading ? "animate-spin" : ""}`} /> Refresh
         </Button>
       </div>
 
       <Card deco="yellow">
         <div className="flex flex-wrap gap-2">
-          <Button variant={filter === "all" ? "blue" : "outline"} size="sm" onClick={() => setFilter("all")}>
+          <Button variant={filter === "all" ? "blue" : "outline"} size="sm" className="flex-1 xs:flex-none" onClick={() => setFilter("all")}>
             Semua
           </Button>
-          <Button variant={filter === "week" ? "blue" : "outline"} size="sm" onClick={() => setFilter("week")}>
+          <Button variant={filter === "week" ? "blue" : "outline"} size="sm" className="flex-1 xs:flex-none" onClick={() => setFilter("week")}>
             7 Hari
           </Button>
         </div>
-        <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-          <div className="border-2 border-bauhaus-black bg-white p-3 shadow-bauhaus-sm">
-            <div className="text-xs font-bold uppercase tracking-widest opacity-60">Sesi</div>
-            <div className="font-black text-xl">{filtered.length}</div>
+        <div className="mt-3 sm:mt-4 grid grid-cols-3 gap-2 sm:gap-3 text-center">
+          <div className="border-2 border-bauhaus-black bg-white p-2 sm:p-3 shadow-bauhaus-sm min-w-0">
+            <div className="stat-label">Sesi</div>
+            <div className="stat-value">{filtered.length}</div>
           </div>
-          <div className="border-2 border-bauhaus-black bg-white p-3 shadow-bauhaus-sm">
-            <div className="text-xs font-bold uppercase tracking-widest opacity-60">Durasi</div>
-            <div className="font-black text-xl">
+          <div className="border-2 border-bauhaus-black bg-white p-2 sm:p-3 shadow-bauhaus-sm min-w-0">
+            <div className="stat-label">Durasi</div>
+            <div className="stat-value">
               {Math.floor(totals.totalSec / 60)}m {totals.totalSec % 60}s
             </div>
           </div>
-          <div className="border-2 border-bauhaus-black bg-bauhaus-yellow p-3 shadow-bauhaus-sm">
-            <div className="text-xs font-bold uppercase tracking-widest opacity-60">XP</div>
-            <div className="font-black text-xl">+{totals.totalXP}</div>
+          <div className="border-2 border-bauhaus-black bg-bauhaus-yellow p-2 sm:p-3 shadow-bauhaus-sm min-w-0">
+            <div className="stat-label">XP</div>
+            <div className="stat-value">+{totals.totalXP}</div>
           </div>
         </div>
-        <div className="mt-2 text-center text-xs font-bold uppercase tracking-widest opacity-60">{totals.totalSets} set • {user ? "Sinkron cloud" : "Lokal (guest)"}</div>
+        <div className="mt-2 text-center text-[10px] sm:text-xs font-bold uppercase tracking-widest opacity-60 break-words">{totals.totalSets} set • {user ? "Sinkron cloud" : "Lokal (guest)"}</div>
       </Card>
 
       <Card deco="blue">
-        <h3 className="font-black uppercase tracking-tight text-sm">Heatmap 35 Hari</h3>
+        <h3 className="font-black uppercase tracking-tight text-sm sm:text-base">Heatmap 35 Hari</h3>
         <div className="mt-3">
           <Heatmap sessions={sessions} />
         </div>
@@ -96,13 +96,13 @@ export default function HistoryPage() {
         <Card deco="red">
           <div className="py-8 text-center">
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-bauhaus-black border-t-transparent" />
-            <p className="mt-2 font-bold uppercase tracking-widest text-sm">Memuat riwayat...</p>
+            <p className="mt-2 font-bold uppercase tracking-widest text-xs sm:text-sm">Memuat riwayat...</p>
           </div>
         </Card>
       ) : grouped.length === 0 ? (
         <Card deco="red">
-          <div className="py-8 text-center">
-            <p className="font-black uppercase tracking-tight">Belum ada sesi</p>
+          <div className="py-8 text-center px-2">
+            <p className="font-black uppercase tracking-tight text-balance">Belum ada sesi</p>
             <p className="mt-1 text-sm font-medium opacity-60">Selesaikan sesi minimal 60 detik di halaman Timer.</p>
             <Badge variant="yellow" className="mt-3">
               {user ? "Login aktif" : "Guest mode"}
@@ -110,17 +110,17 @@ export default function HistoryPage() {
           </div>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {grouped.map(([dateKey, list]) => {
             const dayTotal = list.reduce((s, x) => s + x.durationSec, 0);
             const dayXP = list.reduce((s, x) => s + x.xpEarned, 0);
             return (
               <div key={dateKey}>
-                <div className="mb-2 flex items-center gap-2">
-                  <h3 className="font-black uppercase tracking-tight text-sm">
+                <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <h3 className="font-black uppercase tracking-tight text-xs sm:text-sm break-words min-w-0">
                     {new Date(dateKey).toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
                   </h3>
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="shrink-0">
                     {list.length} sesi • {Math.floor(dayTotal / 60)}m • +{dayXP} XP
                   </Badge>
                 </div>
@@ -149,11 +149,12 @@ export default function HistoryPage() {
 
       {sessions.length > 0 && (
         <Card deco="red" className="border-bauhaus-red">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-black uppercase tracking-widest">Hapus semua data lokal?</span>
+          <div className="flex flex-col xs:flex-row xs:items-center gap-2">
+            <span className="text-[11px] sm:text-xs font-black uppercase tracking-widest break-words flex-1">Hapus semua data lokal?</span>
             <Button
               variant="ghost"
               size="sm"
+              className="shrink-0 w-full xs:w-auto"
               onClick={async () => {
                 const ok = await confirm({
                   title: "Hapus semua sesi lokal?",

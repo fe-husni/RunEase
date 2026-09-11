@@ -102,7 +102,7 @@ export function BauhausSelect({ value, options, onChange, label }: BauhausSelect
             setOpen(false);
           }
         }}
-        className="flex w-full items-center justify-between gap-2 border-2 border-bauhaus-black bg-white px-3 py-2 font-bold shadow-bauhaus-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bauhaus-blue"
+        className="flex min-h-[48px] w-full items-center justify-between gap-2 border-2 border-bauhaus-black bg-white px-3 sm:px-4 py-2 text-sm sm:text-base font-bold shadow-bauhaus-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bauhaus-blue"
       >
         <span className="truncate">{selected?.label ?? value}</span>
         <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform", open && "rotate-180")} />
@@ -129,7 +129,7 @@ export function BauhausSelect({ value, options, onChange, label }: BauhausSelect
                 onClick={() => choose(o.value)}
                 onKeyDown={(e) => onOptionKeyDown(e, i)}
                 className={cn(
-                  "flex cursor-pointer items-center justify-between gap-2 border-b-2 border-bauhaus-black/10 px-3 py-2 text-sm font-bold uppercase tracking-wide last:border-b-0 focus-visible:bg-bauhaus-gray focus-visible:outline-none",
+                  "flex min-h-[44px] cursor-pointer items-center justify-between gap-2 border-b-2 border-bauhaus-black/10 px-3 py-2 text-sm font-bold uppercase tracking-wide last:border-b-0 focus-visible:bg-bauhaus-gray focus-visible:outline-none",
                   isSelected ? "bg-bauhaus-yellow" : "bg-white hover:bg-bauhaus-gray"
                 )}
               >

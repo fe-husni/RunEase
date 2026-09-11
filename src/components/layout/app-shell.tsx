@@ -13,10 +13,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         Lewati ke konten
       </a>
       <TopNav />
-      <div className="mx-auto max-w-md px-4 pt-4 sm:max-w-7xl">
+      <div className="container-app pt-3 sm:pt-4">
         <InstallBanner />
       </div>
-      <main id="konten" className="mx-auto max-w-md px-4 pb-20 pt-4 sm:pb-4 sm:max-w-7xl">{children}</main>
+      <main id="konten" className="container-app pb-28 pt-3 sm:pb-12 sm:pt-4">{children}</main>
       <BottomNav />
     </div>
   );

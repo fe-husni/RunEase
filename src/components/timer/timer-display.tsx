@@ -29,10 +29,10 @@ function TimerDisplayImpl({ remainingSec, phase, totalElapsedSec, setsCompleted,
   const nextLabel = phase === "run" ? "JALAN" : phase === "walk" ? "LARI" : phase === "warmup" ? "LARI" : "-";
 
   return (
-    <Card deco={phase === "run" ? "red" : phase === "walk" ? "blue" : "yellow"} className="flex min-h-[50vh] flex-col items-center justify-center text-center">
+    <Card deco={phase === "run" ? "red" : phase === "walk" ? "blue" : "yellow"} className="flex min-h-[42vh] xs:min-h-[45vh] sm:min-h-[50vh] flex-col items-center justify-center p-4 sm:p-8 text-center">
       <Badge
         variant={phase === "run" ? "red" : phase === "walk" ? "blue" : phase === "warmup" ? "yellow" : "outline"}
-        className={cn("mb-6 border-2 shadow-bauhaus-sm", phaseColor, "px-4 py-1 text-xs")}
+        className={cn("mb-4 sm:mb-6 border-2 shadow-bauhaus-sm", phaseColor, "px-4 py-1")}
       >
         {getPhaseLabel(phase)}
       </Badge>
@@ -40,13 +40,13 @@ function TimerDisplayImpl({ remainingSec, phase, totalElapsedSec, setsCompleted,
       <h1
         aria-live="polite"
         aria-label={`Sisa waktu ${phase} ${formatTime(remainingSec)}`}
-        className="font-black tabular-nums leading-[0.9] tracking-tighter text-7xl sm:text-8xl"
+        className="font-black tabular-nums leading-[0.9] tracking-tighter text-6xl xs:text-7xl sm:text-8xl"
       >
         {formatTime(remainingSec)}
       </h1>
 
       <div
-        className="mt-8 h-3 w-full max-w-sm overflow-hidden border-2 border-bauhaus-black bg-white"
+        className="mt-6 sm:mt-8 h-3 w-full max-w-sm overflow-hidden border-2 border-bauhaus-black bg-white"
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={100}
@@ -59,7 +59,7 @@ function TimerDisplayImpl({ remainingSec, phase, totalElapsedSec, setsCompleted,
         />
       </div>
 
-      <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs font-bold uppercase tracking-widest opacity-60">
+      <div className="mt-4 flex flex-wrap justify-center gap-x-2 gap-y-1 text-[11px] sm:text-xs font-bold uppercase tracking-widest opacity-60">
         <span>Set {setsCompleted}</span>
         <span>•</span>
         <span>Total {formatTime(totalElapsedSec)}</span>

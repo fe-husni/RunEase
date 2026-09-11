@@ -126,7 +126,7 @@ function ConfirmOverlay({ request, onAnswer }: { request: PendingRequest; onAnsw
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
         aria-describedby={request.message ? "confirm-dialog-desc" : undefined}
-        className="w-full max-w-sm"
+        className="w-[calc(100%-2rem)] max-w-sm p-4 sm:p-6"
       >
         <div className="flex items-start gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center border-2 border-bauhaus-black bg-bauhaus-yellow">
@@ -143,9 +143,9 @@ function ConfirmOverlay({ request, onAnswer }: { request: PendingRequest; onAnsw
             )}
           </div>
         </div>
-        <div className={`mt-6 grid gap-3 ${isConfirm ? "grid-cols-2" : "grid-cols-1"}`}>
+        <div className={`mt-6 grid gap-2 ${isConfirm ? "grid-cols-1 xs:grid-cols-2" : "grid-cols-1"}`}>
           {isConfirm && (
-            <Button variant="outline" shape="square" onClick={() => onAnswer(false)}>
+            <Button variant="outline" shape="square" className="min-h-[48px] w-full" onClick={() => onAnswer(false)}>
               {request.cancelLabel}
             </Button>
           )}
@@ -153,6 +153,7 @@ function ConfirmOverlay({ request, onAnswer }: { request: PendingRequest; onAnsw
             variant={request.variant}
             shape="square"
             autoFocus
+            className="min-h-[48px] w-full"
             onClick={() => onAnswer(isConfirm ? true : false)}
           >
             {request.confirmLabel}

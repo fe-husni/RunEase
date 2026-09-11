@@ -20,7 +20,7 @@ export function Section({ color = "gray", className, children, ...props }: Secti
   return (
     <section
       className={cn(
-        "relative overflow-hidden border-b-4 border-bauhaus-black px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-24",
+        "relative overflow-hidden border-b-4 border-bauhaus-black px-4 py-10 xs:py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-24",
         colorMap[color],
         className
       )}

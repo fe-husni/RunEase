@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center font-bold uppercase tracking-wider border-2 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bauhaus-blue focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+  "inline-flex items-center justify-center gap-2 font-bold uppercase tracking-wider border-2 whitespace-nowrap shrink-0 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bauhaus-blue focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
   {
     variants: {
       variant: {
@@ -13,16 +13,17 @@ const buttonVariants = cva(
         yellow: "bg-bauhaus-yellow text-bauhaus-black border-bauhaus-black shadow-bauhaus hover:bg-bauhaus-yellow/90",
         outline: "bg-white text-bauhaus-black border-bauhaus-black shadow-bauhaus hover:bg-bauhaus-gray",
         ghost: "bg-transparent border-transparent shadow-none hover:bg-bauhaus-muted",
+        "outline-icon": "bg-white text-bauhaus-black border-bauhaus-black shadow-bauhaus-sm hover:bg-bauhaus-gray",
       },
       shape: {
         square: "rounded-none",
         pill: "rounded-full",
       },
       size: {
-        sm: "px-4 py-2 text-xs",
-        default: "px-6 py-3 text-sm",
-        lg: "px-8 py-4 text-base",
-        icon: "h-10 w-10 p-0 sm:h-12 sm:w-12",
+        sm: "min-h-[44px] px-4 py-2 text-xs",
+        default: "min-h-[48px] px-5 py-3 text-sm",
+        lg: "min-h-[52px] px-8 py-4 text-base",
+        icon: "h-11 w-11 p-0 sm:h-12 sm:w-12",
       },
     },
     defaultVariants: {

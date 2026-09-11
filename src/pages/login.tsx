@@ -35,15 +35,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="mx-auto max-w-md py-8">
+    <div className="container-app py-6 sm:py-8">
       <Card deco="blue">
         <div className="text-center">
-          <AppLogo size="lg" className="mb-4 justify-center" />
+          <AppLogo size="md" className="mb-4 justify-center sm:hidden" />
+          <span className="mb-4 hidden justify-center sm:flex">
+            <AppLogo size="lg" />
+          </span>
           <Badge variant="blue" className="mb-4">
             Auth
           </Badge>
-          <h1 className="font-black uppercase tracking-tighter text-3xl leading-[0.9]">Masuk RunEase</h1>
-          <p className="mt-2 font-medium opacity-70">Simpan progres, streak & badge di cloud. Tetap bisa pakai tanpa login.</p>
+          <h1 className="font-black uppercase tracking-tighter text-2xl sm:text-3xl leading-[0.9] text-balance">Masuk RunEase</h1>
+          <p className="mt-2 text-sm sm:text-base font-medium opacity-70">Simpan progres, streak & badge di cloud. Tetap bisa pakai tanpa login.</p>
         </div>
 
         <CardContent className="mt-6 space-y-3">
@@ -56,8 +59,8 @@ export default function LoginPage() {
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-bauhaus-red" />
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-bold text-bauhaus-red">Login gagal</div>
-                <div className="mt-0.5 text-sm font-medium text-bauhaus-red/90">{error}</div>
-                <Button variant="ghost" size="sm" className="mt-2 px-2" onClick={handleGoogleLogin} disabled={loading}>
+                <div className="mt-0.5 text-sm font-medium text-bauhaus-red/90 break-words">{error}</div>
+                <Button variant="ghost" size="sm" className="mt-2 min-h-[44px] px-2" onClick={handleGoogleLogin} disabled={loading}>
                   Coba lagi
                 </Button>
               </div>
@@ -65,7 +68,7 @@ export default function LoginPage() {
                 type="button"
                 aria-label="Tutup pesan error"
                 onClick={clearError}
-                className="shrink-0 border-2 border-transparent p-1 hover:border-bauhaus-black"
+                className="flex h-11 w-11 shrink-0 items-center justify-center border-2 border-transparent hover:border-bauhaus-black"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -76,7 +79,7 @@ export default function LoginPage() {
             variant="red"
             shape="square"
             size="lg"
-            className="w-full"
+            className="min-h-[52px] w-full text-sm sm:text-base"
             onClick={handleGoogleLogin}
             disabled={loading}
           >

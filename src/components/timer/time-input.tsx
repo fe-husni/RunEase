@@ -37,8 +37,8 @@ export function TimeInput({ label, valueSec, onChange, disabled, color = "red" }
   const borderColor = color === "red" ? "border-bauhaus-red" : color === "blue" ? "border-bauhaus-blue" : "border-bauhaus-yellow";
 
   return (
-    <div className={cn("min-w-0 border-4 border-bauhaus-black bg-white p-3 shadow-bauhaus sm:p-4", disabled && "opacity-50")}>
-      <div className="mb-2 text-center text-xs font-black uppercase tracking-widest">{label}</div>
+    <div className={cn("min-w-0 border-2 sm:border-4 border-bauhaus-black bg-white p-3 sm:p-4 shadow-bauhaus-sm sm:shadow-bauhaus", disabled && "opacity-50")}>
+      <div className="mb-2 text-center text-[11px] sm:text-xs font-black uppercase tracking-widest">{label}</div>
       <div className="flex items-center justify-center gap-1">
         <Input
           inputMode="numeric"
@@ -50,10 +50,10 @@ export function TimeInput({ label, valueSec, onChange, disabled, color = "red" }
             setMm(v);
           }}
           onBlur={() => commit(mm || "0", ss || "0")}
-          className={cn("h-14 min-w-0 flex-1 px-1 text-center font-black text-2xl tabular-nums sm:h-16 sm:px-2 sm:text-3xl", borderColor)}
+          className={cn("h-12 xs:h-14 min-w-0 flex-1 px-1 text-center font-black text-xl xs:text-2xl sm:h-16 sm:px-2 sm:text-3xl tabular-nums", borderColor)}
           aria-label={`${label} menit`}
         />
-        <span aria-hidden className="shrink-0 font-black text-2xl">:</span>
+        <span aria-hidden className="shrink-0 font-black text-xl sm:text-2xl">:</span>
         <Input
           inputMode="numeric"
           pattern="[0-9]*"
@@ -67,11 +67,11 @@ export function TimeInput({ label, valueSec, onChange, disabled, color = "red" }
             else setSs(v);
           }}
           onBlur={() => commit(mm || "0", ss || "0")}
-          className={cn("h-14 min-w-0 flex-1 px-1 text-center font-black text-2xl tabular-nums sm:h-16 sm:px-2 sm:text-3xl", borderColor)}
+          className={cn("h-12 xs:h-14 min-w-0 flex-1 px-1 text-center font-black text-xl xs:text-2xl sm:h-16 sm:px-2 sm:text-3xl tabular-nums", borderColor)}
           aria-label={`${label} detik`}
         />
       </div>
-      <div className="mt-2 text-center text-xs font-bold uppercase tracking-widest opacity-60">{valueSec}s</div>
+      <div className="mt-2 text-center text-[11px] sm:text-xs font-bold uppercase tracking-widest opacity-60 tabular-nums">{valueSec}s</div>
     </div>
   );
 }
