@@ -20,18 +20,27 @@ layar terkunci (Chrome foreground + Wake Lock + Web Worker + Service Worker).
 - **Auth Google + mode tamu** — popup (desktop) / redirect (HP/PWA), anonim bisa coba tanpa login,
   migrasi data lokal → cloud saat login (`src/stores/userStore.ts`, `src/lib/migrate.ts`)
 - **History & statistik real** — list grup per tanggal, heatmap, grafik Recharts mingguan/bulanan
-- **Gamifikasi** — XP/Level, streak zona `Asia/Jakarta`, 12 badge, challenge mingguan di Stats
-- **Custom preset tersimpan** — 5 bawaan + maks 10 custom per user, sync Firestore
+- **Mode Bebas & Target Set** — infinite (stop manual) atau berhenti otomatis setelah N set
+  (1–50); set terakhir → cooldown (bila ada) → selesai dengan status `completed`
+  (`src/workers/timer.worker.ts`, `src/lib/phase.ts`)
+- **Gamifikasi** — XP/Level, streak zona `Asia/Jakarta`, 12 badge, challenge mingguan di Stats;
+  badge dievaluasi pasca-sesi, saat simpan preset, dan saat buka Statistik (login-only,
+  idempoten) + dialog "Badge didapat!" (`src/lib/badges.ts`, `src/lib/userStats.ts`)
+- **Custom preset tersimpan** — 5 bawaan + maks 10 custom per user, sync Firestore,
+  ikut menyimpan mode & target set
 - **Export/Import JSON** — versioned `version:1`, validasi Zod, mode Merge/Replace + backup otomatis
 - **Settings persist** — nada/volume, getar, wake lock, bahasa; tersimpan cloud + lokal
 - **Notifikasi fallback** — `requireInteraction` saat dokumen hidden
+- **Mobile-friendly** — breakpoint `xs:400px`, kontainer/tipografi responsif
+  (`.container-app`, `.page-title`), target sentuh ≥44px, BottomNav 4 tab sama lebar +
+  safe-area, anti scroll horizontal (`src/index.css`, `tailwind.config.ts`)
 
 ## Tech Stack
 
 | Lapisan | Pilihan |
 |---|---|
 | Build | Vite 6 + React 19 + TypeScript |
-| Style | Tailwind 3.4 + shadcn/ui + Bauhaus design system (`DESIGNSYSTEM.md`) |
+| Style | Tailwind 3.4 + shadcn/ui + Bauhaus design system (`docs/DESIGNSYSTEM.md`) |
 | State | Zustand (`src/stores/`) |
 | Backend | Firebase 11: Auth, Firestore, Hosting, Analytics |
 | Offline | Firestore persistence + localForage (mode tamu) |
@@ -51,7 +60,7 @@ npm install
 npm run dev          # http://localhost:5173
 npm run build        # tsc + vite → dist/
 npm run lint         # eslint, 0 warning
-npm run test:run     # vitest (belum ada test file, lihat TESTING.md)
+npm run test:run     # vitest (badges.test.ts, phase.test.ts — lihat docs/TESTING.md)
 ```
 
 ## Setup Env
@@ -61,7 +70,7 @@ cp .env.example .env
 ```
 
 Isi 8 key dari Firebase Console → Project Settings → General → Your apps → SDK Config
-(`FIREBASE_SETUP.md` Fase A2):
+(`docs/FIREBASE_SETUP.md` Fase A2):
 
 ```
 VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_PROJECT_ID,
@@ -102,8 +111,8 @@ src/
   workers/       timer.worker.ts (detak 250ms)
   hooks/         useTimerWorker, useWakeLock, useVibration, usePWAInstall
   lib/           firebase, audio, session, presets, gamification, streak, badges,
-                 challenges, export, import, schemas, migrate, settings,
-                 deleteAll, analytics, notifications
+                  challenges, export, import, schemas, migrate, settings,
+                  deleteAll, analytics, notifications, phase (+ *.test.ts)
   types/         timer, user, preset, session
 ```
 
@@ -120,18 +129,25 @@ src/
 
 ## Dokumen
 
-- `PRD.md` — kebutuhan produk + acceptance criteria
-- `DATABASE.md` — skema Firestore
-- `DESIGNSYSTEM.md`, `STYLEGUIDE.md` — aturan Bauhaus (wajib baca sebelum ubah UI)
-- `IMPLEMENTATION_PLAN.md` — arsitektur
-- `TASKS.md` — backlog ber-ID (`T-...`)
-- `STATUS.md` — status mingguan
-- `TESTING.md` — matriks test device + cara uji
-- `FIREBASE_SETUP.md` — setup Firebase langkah demi langkah
-- `CONTRIBUTING.md` — cara kontribusi
+Semua dokumen desain & perencanaan ada di [`docs/`](docs/):
+
+- `docs/PRD.md` — kebutuhan produk + acceptance criteria
+- `docs/DATABASE.md` — skema Firestore
+- `docs/DESIGNSYSTEM.md`, `docs/STYLEGUIDE.md` — aturan Bauhaus (wajib baca sebelum ubah UI)
+- `docs/IMPLEMENTATION_PLAN.md` — arsitektur
+- `docs/TASKS.md` — backlog ber-ID (`T-...`)
+- `docs/STATUS.md` — status mingguan
+- `docs/TESTING.md` — matriks test device + cara uji
+- `docs/FIREBASE_SETUP.md` — setup Firebase langkah demi langkah
+- `docs/CONTRIBUTING.md` — cara kontribusi
+- `docs/developnextfeature.md` — plan fitur sosial (profil, teman, challenge, leaderboard)
 
 ## Status & Roadmap
 
-Fase 1 (Timer+PWA+Auth), 2 (Data), 3 (Gamify), 4 (Polish) inti selesai — lihat `STATUS.md`.
-Sisa: test matrix device fisik + 1 fitur V2 (rekomendasi: leaderboard mingguan).
-Backlog V2: GPS tracking, leaderboard, upload nada custom, push FCM, dark mode.
+Fase 1 (Timer+PWA+Auth), 2 (Data), 3 (Gamify), 4 (Polish) inti selesai — lihat `docs/STATUS.md`.
+Selesai juga: rombak responsif mobile-friendly global, perbaikan evaluasi badge
+(night_runner 23:xx, filter abandoned konsisten, dialog unlock), mode Target Set +
+auto-finish via cooldown.
+Sisa: test matrix device fisik. Berikutnya: fitur sosial ala Strava-lite —
+lihat `docs/developnextfeature.md` (profil publik, teman, challenge gabungan,
+leaderboard per-challenge; tanpa GPS).
