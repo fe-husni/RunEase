@@ -1,4 +1,4 @@
-import { collection, doc, setDoc, deleteDoc, getDocs, query, orderBy, limit, serverTimestamp, Timestamp } from "firebase/firestore";
+import { collection, doc, setDoc, deleteDoc, getDocs, query, orderBy, limit, serverTimestamp, Timestamp, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import localForage from "localforage";
 import type { SessionDoc, SessionStatus } from "@/types/session";
@@ -86,15 +86,9 @@ export async function fetchSessions(uid: string | null, max = 50): Promise<Sessi
       const q = query(collection(db, `users/${uid}/sessions`), orderBy("startedAt", "desc"), limit(max));
       const snap = await getDocs(q);
       const docs = snap.docs.map((d) => d.data() as SessionDoc);
-      // cache to localForage
-      if (docs.length > 0) {
-        await localSessions.setItem(localKey(uid), docs);
-      }
-      // if offline and cache exists, merge? Firestore persistence handles it, but we try local fallback if empty
-      if (docs.length === 0) {
-        const cached = (await localSessions.getItem<SessionDoc[]>(localKey(uid))) ?? [];
-        return cached.slice(0, max);
-      }
+      // sinkronkan cache lokal dengan cloud (termasuk kasus kosong setelah hapus —
+      // jangan kembalikan cache basi agar data terhapus tidak resurrect).
+      await localSessions.setItem(localKey(uid), docs);
       return docs;
     } catch (e) {
       console.warn("[session] fetch Firestore failed, fallback local", e);
@@ -137,6 +131,34 @@ export async function deleteSession(uid: string | null, sessionId: string): Prom
     key,
     existing.filter((s) => s.id !== sessionId)
   );
+}
+
+/**
+ * Hapus SEMUA sesi (riwayat) saja — preset custom, badge, dan progres
+ * XP/level/streak dibiarkan utuh. Dipakai tombol "Hapus Semua" di halaman
+ * Riwayat. Untuk reset penuh (termasuk preset) pakai deleteAllData().
+ */
+export async function deleteAllSessions(uid: string | null): Promise<number> {
+  if (uid) {
+    const snap = await getDocs(collection(db, `users/${uid}/sessions`));
+    const refs = snap.docs.map((d) => d.ref);
+    for (let i = 0; i < refs.length; i += 400) {
+      const batch = writeBatch(db);
+      refs.slice(i, i + 400).forEach((ref) => batch.delete(ref));
+      await batch.commit();
+    }
+    await Promise.all([
+      localSessions.removeItem(localKey(uid)),
+      localSessions.removeItem(localKey(null)),
+      localSessions.removeItem("sessions:anon"),
+    ]);
+    return refs.length;
+  }
+  await Promise.all([
+    localSessions.removeItem(localKey(null)),
+    localSessions.removeItem("sessions:anon"),
+  ]);
+  return 0;
 }
 
 // helper to normalize Timestamp to millis for grouping

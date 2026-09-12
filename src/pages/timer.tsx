@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useBlocker } from "react-router-dom";
 import { useTimerStore, formatTime, DEFAULT_TARGET_SETS, MIN_TARGET_SETS, MAX_TARGET_SETS } from "@/stores/timerStore";
 import { useTimerWorker } from "@/hooks/useTimerWorker";
 import { useVibration } from "@/hooks/useVibration";
 import { useWakeLock } from "@/hooks/useWakeLock";
 import { ensureAudio, playRunSound, playWalkSound, playWarmupSound } from "@/lib/audio";
+import { loadActiveTimer, clearActiveTimer } from "@/lib/activeTimer";
+import { notifyViaSW } from "@/lib/notifications";
 import { TimerDisplay } from "@/components/timer/timer-display";
 import { TimerControls } from "@/components/timer/timer-controls";
 import { TimeInput } from "@/components/timer/time-input";
@@ -29,21 +32,42 @@ import type { SessionStatus } from "@/types/session";
 
 export default function TimerPage() {
   const { phase, remainingSec, phaseDuration, totalElapsedSec, setsCompleted, isRunning, isPaused, config, setConfig, startedAt } = useTimerStore();
-  const { start, pause, resume, skip, stop, setOnPhaseChange, setOnFinished } = useTimerWorker();
+  const { start, restore, pause, resume, skip, stop, setOnPhaseChange, setOnFinished } = useTimerWorker();
   const { vibrateForPhase } = useVibration();
   const user = useUserStore((s) => s.user);
   const { sessions, addLocal } = useSessionStore();
   const customs = usePresetStore((s) => s.customs);
   const fetchCustoms = usePresetStore((s) => s.fetch);
   const addCustom = usePresetStore((s) => s.add);
+  const activePresetId = usePresetStore((s) => s.activePresetId);
+  const setActivePresetId = usePresetStore((s) => s.setActive);
+  const presetsLoading = usePresetStore((s) => s.loading);
   const allPresets = useMemo(() => [...builtinPresets, ...customs], [customs]);
+  // #5: estimasi total aktivitas — 1 set = 1x lari + 1x jalan (lihat phase.ts)
+  const estimate = useMemo(() => {
+    const sets = config.targetSets ?? DEFAULT_TARGET_SETS;
+    const perSet = config.runSec + config.walkSec;
+    if (config.mode !== "sets") {
+      return { label: `1 set ≈ ${formatTime(perSet)}`, detail: `${formatTime(config.runSec)} + ${formatTime(config.walkSec)}` };
+    }
+    const totalSec = config.warmupSec + sets * perSet + config.cooldownSec;
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    const totalLabel = mins > 0 ? `≈ ${mins} mnt${secs > 0 ? ` ${secs} dtk` : ""}` : `≈ ${secs} dtk`;
+    return {
+      label: `${totalLabel} • ${sets} set`,
+      detail: `${sets}×(${formatTime(config.runSec)}+${formatTime(config.walkSec)})${config.warmupSec > 0 ? ` + W${formatTime(config.warmupSec)}` : ""}${config.cooldownSec > 0 ? ` + C${formatTime(config.cooldownSec)}` : ""}`,
+      totalSec,
+    };
+  }, [config]);
   const { incrementSessionCount } = usePWAInstall();
-  const { notify } = useConfirmDialog();
+  const { notify, confirm } = useConfirmDialog();
   const [settings, setSettings] = useState(defaultSettings);
   const { active: wakeActive } = useWakeLock(isRunning && !isPaused && settings.wakeLock);
 
-  const [activePresetId, setActivePresetId] = useState<string>("builtin_2_1");
   const [showSummary, setShowSummary] = useState(false);
+  const [restored, setRestored] = useState(false);
+  const [wasResumed, setWasResumed] = useState(false);
   const [lastSession, setLastSession] = useState<SessionDoc | null>(null);
   const [saving, setSaving] = useState(false);
   const [customName, setCustomName] = useState("");
@@ -88,18 +112,99 @@ export default function TimerPage() {
     fetchCustoms(user?.uid ?? null);
   }, [user?.uid, fetchCustoms]);
 
-  // jika preset aktif terhapus (mis. dari Settings), kembali ke bawaan
+  // Bug 8: auto-resume sesi yang ter-interupsi reload / pindah halaman.
+  // Snapshot tersimpan tiap detik di localStorage (lihat useTimerWorker).
+  useEffect(() => {
+    if (restored) return;
+    const snap = loadActiveTimer();
+    if (!snap) {
+      setRestored(true);
+      return;
+    }
+    // snapshot basi (>12 jam) → buang, jangan resume sesi kemarin
+    if (Date.now() - snap.updatedAt > 12 * 60 * 60 * 1000) {
+      clearActiveTimer();
+      setRestored(true);
+      return;
+    }
+    // beri worker waktu init (Dedicated Worker dibuat di useTimerWorker)
+    const t = setTimeout(() => {
+      try {
+        restore(snap);
+        setWasResumed(true);
+        setShowSummary(false);
+        finishGuardRef.current = false;
+      } catch {
+        // ignore
+      } finally {
+        setRestored(true);
+      }
+    }, 150);
+    return () => clearTimeout(t);
+  }, [restored, restore]);
+
+  // Bug 8: cegah reload tak sengaja saat sesi berjalan
+  useEffect(() => {
+    if (!isRunning || showSummary) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [isRunning, showSummary]);
+
+  // Bug 8: cegah pindah halaman (React Router) saat sesi berjalan
+  const blocker = useBlocker(isRunning && !showSummary);
+  useEffect(() => {
+    if (blocker.state !== "blocked") return;
+    (async () => {
+      const ok = await confirm({
+        title: "Sesi masih berjalan",
+        message: "Pindah halaman akan tetap melanjutkan sesi di background (auto-resume). Lanjut pindah?",
+        confirmLabel: "Pindah",
+        variant: "yellow",
+      });
+      if (ok) blocker.proceed();
+      else blocker.reset();
+    })();
+  }, [blocker, confirm]);
+
+  // jika preset aktif terhapus (mis. dari Settings), kembali ke bawaan.
+  // Tunggu fetch selesai agar tidak reset preset yang baru di-add / belum load.
   useEffect(() => {
     if (isRunning) return;
-    if (activePresetId === "custom") return;
+    if (presetsLoading) return;
+    if (!activePresetId || activePresetId === "custom") return;
     if (!allPresets.some((p) => p.id === activePresetId)) {
       const fallback = builtinPresets.find((p) => p.id === "builtin_2_1")!;
       setActivePresetId(fallback.id);
-      setConfig({ runSec: fallback.runSec, walkSec: fallback.walkSec, warmupSec: fallback.warmupSec, cooldownSec: fallback.cooldownSec });
+      setConfig({ runSec: fallback.runSec, walkSec: fallback.walkSec, warmupSec: fallback.warmupSec, cooldownSec: fallback.cooldownSec, mode: "infinite", targetSets: undefined });
     }
-  }, [allPresets, activePresetId, isRunning, setConfig]);
+  }, [allPresets, activePresetId, isRunning, presetsLoading, setConfig, setActivePresetId]);
 
-  // handle phase change -> audio + vibrate + notifikasi fallback (background)
+  // Sinkronisasi config dari preset aktif saat daftar preset selesai load
+  // (mis. setelah reload: activePresetId ter-restore dari localStorage, customs baru datang async).
+  // Hanya saat idle + preset non-custom agar edit manual tidak tertimpa.
+  const syncedPresetRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (isRunning) return;
+    if (presetsLoading) return;
+    if (!activePresetId || activePresetId === "custom") return;
+    if (syncedPresetRef.current === activePresetId) return;
+    const p = allPresets.find((x) => x.id === activePresetId);
+    if (!p) return;
+    syncedPresetRef.current = activePresetId;
+    setConfig({
+      runSec: p.runSec,
+      walkSec: p.walkSec,
+      warmupSec: p.warmupSec,
+      cooldownSec: p.cooldownSec,
+      mode: p.mode === "sets" ? "sets" : "infinite",
+      targetSets: p.mode === "sets" ? (p.targetSets ?? DEFAULT_TARGET_SETS) : undefined,
+    });
+  }, [allPresets, activePresetId, isRunning, presetsLoading, setConfig]);
+
+  // handle phase change -> audio + vibrate + notifikasi SW (background/lock)
   useEffect(() => {
     setOnPhaseChange((_from, to) => {
       // audio
@@ -107,15 +212,25 @@ export default function TimerPage() {
       else if (to === "walk") playWalkSound(volume);
       else if (to === "warmup" || to === "cooldown") playWarmupSound(volume);
 
-      // haptics
+      // haptics (foreground; saat lock digantikan vibrate via SW notification)
       if (vibrateEnabled) vibrateForPhase(to);
 
-      // fallback visual jika tab background (audio berpotensi diblokir)
-      if (notifEnabled && document.hidden && (to === "run" || to === "walk" || to === "warmup" || to === "cooldown")) {
-        const phase = to;
-        import("@/lib/notifications").then(({ sendPhaseNotification }) => {
-          sendPhaseNotification(phase);
-        }).catch(() => {});
+      // notifikasi via Service Worker — satu-satunya jalur yang bisa bangunkan OS saat lock.
+      // Kirim selalu saat notifEnabled (SW menimpa via tag), bukan hanya saat document.hidden,
+      // karena callback main-thread bisa telat saat tab mulai ter-freeze.
+      if (notifEnabled && (to === "run" || to === "walk" || to === "warmup" || to === "cooldown")) {
+        notifyViaSW(to as "run" | "walk" | "warmup" | "cooldown", vibrateEnabled).catch(() => {});
+      }
+
+      // jalur native opsional (Capacitor): getar + notif andal saat layar mati total.
+      // Aman di Web murni (dynamic import gagal → false, diabaikan).
+      if (to === "run" || to === "walk" || to === "warmup" || to === "cooldown") {
+        import("@/lib/nativeNotify")
+          .then(({ vibrateNative, notifyNative }) => {
+            if (vibrateEnabled) vibrateNative(to as "run" | "walk" | "warmup" | "cooldown").catch(() => {});
+            if (notifEnabled) notifyNative(to as "run" | "walk" | "warmup" | "cooldown").catch(() => {});
+          })
+          .catch(() => {});
       }
 
       // optional voice
@@ -131,6 +246,7 @@ export default function TimerPage() {
       setActivePresetId("custom");
       return;
     }
+    syncedPresetRef.current = p.id;
     setActivePresetId(p.id);
     setConfig({
       runSec: p.runSec,
@@ -177,7 +293,8 @@ export default function TimerPage() {
         targetSets: config.mode === "sets" ? config.targetSets : undefined,
       });
       setCustomName("");
-      setActivePresetId(p.id);
+      syncedPresetRef.current = p.id;
+      // store.add sudah setActive(p.id) — tidak perlu set lagi (hindari race)
       // Evaluasi badge (mis. Kolektor Preset) — login-only, idempoten
       if (user?.uid) {
         try {
@@ -203,11 +320,14 @@ export default function TimerPage() {
 
   const handleStart = useCallback(async () => {
     await ensureAudio();
-    // Minta izin notifikasi saat Start (user gesture) jika fallback diaktifkan
+    // Minta izin notifikasi saat Start (user gesture) — await agar fase pertama tidak kehilangan notif
     if (notifEnabled) {
-      import("@/lib/notifications").then(({ ensureNotificationPermission }) => {
-        ensureNotificationPermission().catch(() => {});
-      }).catch(() => {});
+      try {
+        const { ensureNotificationPermission } = await import("@/lib/notifications");
+        await ensureNotificationPermission();
+      } catch {
+        // ignore
+      }
     }
     finishGuardRef.current = false;
     setShowSummary(false);
@@ -215,7 +335,7 @@ export default function TimerPage() {
       runSec: config.runSec,
       walkSec: config.walkSec,
       mode: config.mode,
-      presetId: activePresetId,
+      presetId: activePresetId ?? "custom",
     });
     start(config);
   }, [config, start, activePresetId, notifEnabled]);
@@ -297,7 +417,7 @@ export default function TimerPage() {
     return () => setOnFinished(null);
   }, [setOnFinished, handleStop]);
 
-  // keyboard shortcuts (Space global hanya saat fokus bukan di tombol — tombol pakai klik native)
+  // keyboard shortcuts — Escape TIDAK boleh stop sesi (rawan kepencet), hanya tutup summary
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement) return;
@@ -311,31 +431,21 @@ export default function TimerPage() {
         skip();
       } else if (e.key === "Escape") {
         if (showSummary) setShowSummary(false);
-        else if (isRunning) handleStop();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isRunning, isPaused, showSummary, handleStart, pause, resume, skip, handleStop]);
+  }, [isRunning, isPaused, showSummary, handleStart, pause, resume, skip]);
 
-  // Initialize from active preset on mount
-  useEffect(() => {
-    const p = builtinPresets.find((x) => x.id === activePresetId);
-    if (p && !isRunning) {
-      setConfig({
-        runSec: p.runSec,
-        walkSec: p.walkSec,
-        warmupSec: p.warmupSec,
-        cooldownSec: p.cooldownSec,
-        mode: p.mode === "sets" ? "sets" : "infinite",
-        targetSets: undefined,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // (init config dari preset aktif ditangani efek sinkronisasi di atas — jangan timpa di mount)
 
   return (
     <div className="container-app space-y-3 sm:space-y-4 py-3 sm:py-6">
+      {wasResumed && isRunning && !showSummary && (
+        <div className="border-2 border-bauhaus-black bg-bauhaus-yellow p-2 text-center text-xs font-black uppercase tracking-widest shadow-bauhaus-sm">
+          Sesi dilanjutkan otomatis setelah reload
+        </div>
+      )}
       {/* Preset chips - only when idle */}
       {!isRunning && <PresetChips presets={allPresets} activeId={activePresetId} onSelect={handleSelectPreset} customConfig={{ runSec: config.runSec, walkSec: config.walkSec }} />}
 
@@ -378,10 +488,10 @@ export default function TimerPage() {
         </div>
       )}
 
-      {/* Timer Display */}
+      {/* Timer Display — saat idle tampilkan fase idle (SIAP), menit ikut config/preset via remainingSec */}
       <TimerDisplay
         remainingSec={remainingSec}
-        phase={phase === "idle" ? (activePresetId ? "run" : "idle") : phase}
+        phase={phase}
         totalElapsedSec={totalElapsedSec}
         setsCompleted={setsCompleted}
         phaseDuration={phaseDuration}
@@ -499,6 +609,10 @@ export default function TimerPage() {
               </div>
             )}
             <p className="mt-2 text-xs font-medium opacity-60">1 set = 1× lari + 1× jalan.</p>
+            <p aria-live="polite" className="mt-1 text-xs font-black uppercase tracking-widest tabular-nums">
+              Estimasi: {estimate.label}
+            </p>
+            <p className="text-[11px] font-medium opacity-60 tabular-nums">{estimate.detail}</p>
           </div>
         </Card>
       )}
@@ -530,7 +644,13 @@ export default function TimerPage() {
         {config.mode === "sets" && (
           <>
             <span>•</span>
-            <span>Target {config.targetSets ?? DEFAULT_TARGET_SETS} set</span>
+            <span>Target {config.targetSets ?? DEFAULT_TARGET_SETS} set • {estimate.label}</span>
+          </>
+        )}
+        {config.mode !== "sets" && (
+          <>
+            <span>•</span>
+            <span>{estimate.label}/set</span>
           </>
         )}
       </div>

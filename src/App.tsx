@@ -1,8 +1,10 @@
-import { useEffect } from "react";
-import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import { useEffect, lazy, Suspense } from "react";
+import { createBrowserRouter, RouterProvider, Outlet, Navigate } from "react-router-dom";
 import { AppShell } from "@/components/layout/app-shell";
 import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
 import { useUserStore } from "@/stores/userStore";
+
+const LandingPage = lazy(() => import("@/pages/landing"));
 
 function Placeholder({ title }: { title: string }) {
   return (
@@ -15,10 +17,37 @@ function Placeholder({ title }: { title: string }) {
   );
 }
 
+/** Bug 6: user login (non-anonim) langsung ke /timer saat buka `/`. Guest/anonim tetap lihat landing. */
+function LandingOrRedirect() {
+  const user = useUserStore((s) => s.user);
+  const loading = useUserStore((s) => s.loading);
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-bauhaus-gray">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-bauhaus-black border-t-transparent" />
+      </div>
+    );
+  }
+  if (user && !user.isAnonymous) {
+    return <Navigate to="/timer" replace />;
+  }
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-bauhaus-gray">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-bauhaus-black border-t-transparent" />
+        </div>
+      }
+    >
+      <LandingPage />
+    </Suspense>
+  );
+}
+
 const router = createBrowserRouter([
   {
     path: "/",
-    lazy: async () => ({ Component: (await import("@/pages/landing")).default }),
+    element: <LandingOrRedirect />,
   },
   {
     element: (

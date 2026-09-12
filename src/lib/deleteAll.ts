@@ -6,6 +6,16 @@ const localSessions = localForage.createInstance({ name: "runease", storeName: "
 const localPresets = localForage.createInstance({ name: "runease", storeName: "presets" });
 
 export async function deleteAllData(uid: string | null): Promise<void> {
+  // kunci lokal yang wajib dibersihkan di semua skenario (hindari resurrect via cache/migrasi)
+  const LOCAL_STORAGE_KEYS = [
+    "runease:customPresets",
+    "runease:settings",
+    "runease:authAttempt",
+    "runease:pendingGuestMigrate",
+    "runease:activeTimer",
+    "runease:activePresetId",
+  ];
+
   if (uid) {
     // Firestore: delete sessions, badges, custom presets, reset user doc
     const [sessSnap, badgeSnap, presetSnap] = await Promise.all([
@@ -37,18 +47,33 @@ export async function deleteAllData(uid: string | null): Promise<void> {
     });
 
     // also clear settings/main? keep
-    await localSessions.removeItem(`sessions:${uid}`);
-    await localSessions.removeItem(`sessions:guest`);
-    await localPresets.removeItem(`presets:${uid}`);
-    await localPresets.removeItem(`presets:guest`);
+    await Promise.all([
+      localSessions.removeItem(`sessions:${uid}`),
+      localSessions.removeItem(`sessions:guest`),
+      localSessions.removeItem(`sessions:anon`),
+      localPresets.removeItem(`presets:${uid}`),
+      localPresets.removeItem(`presets:guest`),
+    ]);
+    LOCAL_STORAGE_KEYS.forEach((k) => {
+      try {
+        localStorage.removeItem(k);
+      } catch {
+        // ignore
+      }
+    });
   } else {
-    // guest only
-    await localSessions.removeItem("sessions:guest");
-    await localSessions.removeItem("sessions:anon");
-    await localPresets.removeItem("presets:guest");
+    // guest only — bersihkan semua sisa agar tidak resurrect setelah login/migrasi
+    await Promise.all([
+      localSessions.removeItem("sessions:guest"),
+      localSessions.removeItem("sessions:anon"),
+      localPresets.removeItem("presets:guest"),
+    ]);
+    LOCAL_STORAGE_KEYS.forEach((k) => {
+      try {
+        localStorage.removeItem(k);
+      } catch {
+        // ignore
+      }
+    });
   }
-
-  // clear also localStorage onboarding flag? keep for now, but user can reset via clear
-  // also clear sessionStore local
-  localStorage.removeItem("runease:customPresets");
 }

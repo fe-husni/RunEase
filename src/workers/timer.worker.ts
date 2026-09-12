@@ -3,6 +3,7 @@ import { getNextPhase } from "@/lib/phase";
 
 type WorkerRequest =
   | { type: "start"; config: TimerConfig }
+  | { type: "restore"; snapshot: { config: TimerConfig; phase: Phase; phaseDuration: number; phaseStartTime: number; startedAt: number; setsCompleted: number; isPaused: boolean; pausedRemaining: number } }
   | { type: "pause" }
   | { type: "resume" }
   | { type: "skip" }
@@ -128,6 +129,68 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
         remainingSec: phaseDuration,
       } as WorkerResponse);
       // immediate tick
+      sendTick();
+      break;
+    }
+    case "restore": {
+      config = msg.snapshot.config;
+      phase = msg.snapshot.phase;
+      phaseDuration = msg.snapshot.phaseDuration;
+      startedAt = msg.snapshot.startedAt;
+      setsCompleted = msg.snapshot.setsCompleted;
+      isRunning = true;
+      isPaused = msg.snapshot.isPaused;
+      pausedRemaining = msg.snapshot.pausedRemaining;
+      if (isPaused) {
+        phaseStartTime = msg.snapshot.phaseStartTime;
+        (self as unknown as Worker).postMessage({
+          type: "started",
+          phase,
+          remainingSec: pausedRemaining,
+        } as WorkerResponse);
+        sendTick();
+        break;
+      }
+      // Kejar fase yang terlewat selama tab tertutup (reload / pindah halaman lama)
+      let psTime = msg.snapshot.phaseStartTime;
+      let guard = 0;
+      for (;;) {
+        guard += 1;
+        if (guard > 500) break; // pengaman loop
+        const now = Date.now();
+        const elapsed = Math.floor((now - psTime) / 1000);
+        const remaining = phaseDuration - elapsed;
+        if (remaining > 0) {
+          phaseStartTime = psTime;
+          break;
+        }
+        // fase selesai saat tab mati — maju seperti sendTick
+        const from = phase;
+        if (from === "walk") setsCompleted += 1;
+        const next = getNextPhase(phase, config, setsCompleted);
+        if (next === "idle") {
+          isRunning = false;
+          phase = "idle";
+          (self as unknown as Worker).postMessage({ type: "finished" } as WorkerResponse);
+          return;
+        }
+        phase = next;
+        phaseDuration = getPhaseDuration(phase, config);
+        psTime = now;
+        (self as unknown as Worker).postMessage({
+          type: "phaseChange",
+          from,
+          to: phase,
+          setsCompleted,
+        } as WorkerResponse);
+      }
+      phaseStartTime = psTime;
+      startInterval();
+      (self as unknown as Worker).postMessage({
+        type: "started",
+        phase,
+        remainingSec: Math.max(0, phaseDuration - Math.floor((Date.now() - phaseStartTime) / 1000)),
+      } as WorkerResponse);
       sendTick();
       break;
     }

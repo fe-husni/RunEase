@@ -100,17 +100,23 @@ export async function fetchPresets(uid: string | null): Promise<PresetDoc[]> {
   if (!uid) {
     return (await localPresets.getItem<PresetDoc[]>(localKey(null))) ?? [];
   }
+  // baca cache lokal dulu agar preset yang baru di-add optimistik tidak hilang saat Firestore stale
+  const localCached = (await localPresets.getItem<PresetDoc[]>(localKey(uid))) ?? [];
   try {
     const snap = await getDocs(collection(db, `users/${uid}/presets`));
     const customs = snap.docs.map((d) => d.data() as PresetDoc).filter((p) => !p.isBuiltIn && !isBuiltInId(p.id));
     const ids = new Set(customs.map((p) => p.id));
     const migrated = await migrateGuestToCloud(uid, ids);
-    const all = [...migrated, ...customs];
+    const cloudAll = [...migrated, ...customs];
+    const cloudIds = new Set(cloudAll.map((p) => p.id));
+    // merge: lokal yang belum ada di cloud (baru di-add / offline) tetap dipertahankan
+    const onlyLocal = localCached.filter((p) => !p.isBuiltIn && !isBuiltInId(p.id) && !cloudIds.has(p.id));
+    const all = [...onlyLocal, ...cloudAll];
     await localPresets.setItem(localKey(uid), all);
     return all;
   } catch (e) {
     console.warn("[presets] fetch Firestore failed, fallback local", e);
-    return (await localPresets.getItem<PresetDoc[]>(localKey(uid))) ?? [];
+    return localCached;
   }
 }
 

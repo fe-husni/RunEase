@@ -27,6 +27,8 @@ export default function SettingsPage() {
   const [replaceConfirm, setReplaceConfirm] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const customs = usePresetStore((s) => s.customs);
+  const activePresetId = usePresetStore((s) => s.activePresetId);
+  const setActivePreset = usePresetStore((s) => s.setActive);
   const fetchCustoms = usePresetStore((s) => s.fetch);
   const removeCustom = usePresetStore((s) => s.remove);
   const [presetError, setPresetError] = useState<string | null>(null);
@@ -211,7 +213,11 @@ export default function SettingsPage() {
             <Toggle checked={settings.notifications} onChange={handleNotifToggle} label="Notifikasi Background" />
           </div>
           {notifDenied && <Badge variant="red" className="whitespace-normal text-left normal-case tracking-normal">Izin notifikasi ditolak browser — ubah di Site Settings</Badge>}
-          {!("vibrate" in navigator) && <Badge variant="yellow" className="whitespace-normal text-left normal-case tracking-normal">Getar tidak tersedia di perangkat ini (iOS)</Badge>}
+          {!("vibrate" in navigator) && <Badge variant="yellow" className="whitespace-normal text-left normal-case tracking-normal">Getar tidak tersedia di perangkat ini (iOS tidak mendukung Vibration API Web)</Badge>}
+          <p className="text-[11px] font-medium opacity-60 leading-relaxed">
+            Catatan: getar Web tidak jalan saat layar mati total. Notifikasi lockscreen dikirim via Service Worker
+            (perlu PWA terinstal + izin). Untuk getar andal saat layar mati, gunakan versi native (Capacitor).
+          </p>
         </div>
       </Card>
 
@@ -234,19 +240,27 @@ export default function SettingsPage() {
           <p className="mt-3 text-center text-sm font-medium opacity-60">Belum ada preset custom.</p>
         ) : (
           <div className="mt-3 space-y-2">
-            {customs.map((p) => (
-              <div key={p.id} className="flex items-center gap-2 border-2 border-bauhaus-black bg-white p-2 sm:p-3 shadow-bauhaus-sm">
+            {customs.map((p) => {
+              const isActive = p.id === activePresetId;
+              return (
+              <div key={p.id} className={`flex items-center gap-2 border-2 p-2 sm:p-3 shadow-bauhaus-sm ${isActive ? "border-bauhaus-black bg-bauhaus-yellow" : "border-bauhaus-black bg-white"}`}>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-black uppercase tracking-tight">{p.name}</div>
+                  <div className="truncate text-sm font-black uppercase tracking-tight">{p.name}{isActive ? " • Aktif" : ""}</div>
                   <div className="text-xs font-medium tabular-nums opacity-60 whitespace-nowrap overflow-hidden text-ellipsis">
                     {p.runSec}s / {p.walkSec}s{p.warmupSec > 0 ? ` • W${p.warmupSec}s` : ""}{p.cooldownSec > 0 ? ` • C${p.cooldownSec}s` : ""}
                   </div>
                 </div>
+                {!isActive && (
+                  <Button variant="blue" size="sm" className="shrink-0" onClick={() => setActivePreset(p.id)}>
+                    Pakai
+                  </Button>
+                )}
                 <Button variant="outline" size="sm" className="shrink-0" onClick={() => handleDeletePreset(p.id, p.name)}>
                   <Trash2 className="h-4 w-4 shrink-0" /> Hapus
                 </Button>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Card>
@@ -322,14 +336,19 @@ export default function SettingsPage() {
               try {
                 const mod = await import("@/lib/deleteAll");
                 await mod.deleteAllData(user?.uid ?? null);
-                // clear local stores
+                // clear local stores + refetch agar UI langsung kosong tanpa refresh manual
                 const { useSessionStore } = await import("@/stores/sessionStore");
                 useSessionStore.getState().clear();
                 const { usePresetStore } = await import("@/stores/presetStore");
                 usePresetStore.getState().clear();
+                await useSessionStore.getState().fetch(user?.uid ?? null);
+                await usePresetStore.getState().fetch(user?.uid ?? null);
+                // reset settings UI ke default (localStorage sudah dibersihkan deleteAllData)
+                const { defaultSettings: def } = await import("@/lib/settings");
+                setSettings(def);
                 await notify({
                   title: "Semua data terhapus",
-                  message: "Refresh untuk lihat perubahan.",
+                  message: "Sesi, badge, dan preset custom sudah dihapus permanen.",
                   variant: "yellow",
                 });
                 setReplaceConfirm("");

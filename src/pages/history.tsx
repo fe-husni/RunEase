@@ -150,30 +150,40 @@ export default function HistoryPage() {
       {sessions.length > 0 && (
         <Card deco="red" className="border-bauhaus-red">
           <div className="flex flex-col xs:flex-row xs:items-center gap-2">
-            <span className="text-[11px] sm:text-xs font-black uppercase tracking-widest break-words flex-1">Hapus semua data lokal?</span>
+            <span className="text-[11px] sm:text-xs font-black uppercase tracking-widest break-words flex-1">Hapus semua riwayat?</span>
             <Button
               variant="ghost"
               size="sm"
               className="shrink-0 w-full xs:w-auto"
               onClick={async () => {
                 const ok = await confirm({
-                  title: "Hapus semua sesi lokal?",
-                  message: "Data di Firestore tetap aman.",
-                  confirmLabel: "Lanjut",
-                  variant: "yellow",
+                  title: "Hapus semua riwayat?",
+                  message: "Semua sesi akan dihapus permanen. Preset custom, badge, dan progres XP tetap aman.",
+                  confirmLabel: "Hapus Semua",
+                  variant: "red",
                 });
-                if (ok) {
-                  // clear localForage only — for now just clear store
-                  // actual clear needs localForage clear, but we keep it simple
+                if (!ok) return;
+                try {
+                  const { deleteAllSessions } = await import("@/lib/session");
+                  await deleteAllSessions(uid);
+                  const { useSessionStore: ss } = await import("@/stores/sessionStore");
+                  ss.getState().clear();
+                  await fetch(uid);
                   await notify({
-                    title: "Gunakan Settings",
-                    message: "Pakai Settings > Hapus Semua Data untuk reset penuh.",
-                    variant: "blue",
+                    title: "Riwayat terhapus",
+                    message: "Semua sesi sudah dihapus permanen. Preset & progres tetap aman.",
+                    variant: "yellow",
+                  });
+                } catch (e) {
+                  await notify({
+                    title: "Gagal hapus",
+                    message: (e as Error).message,
+                    variant: "red",
                   });
                 }
               }}
             >
-              <Trash2 className="mr-1 h-4 w-4" /> Info
+              <Trash2 className="mr-1 h-4 w-4" /> Hapus Semua
             </Button>
           </div>
         </Card>

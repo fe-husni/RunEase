@@ -75,11 +75,15 @@ export const useTimerStore = create<TimerStoreState & TimerStoreActions>((set, g
       nextConfig.targetSets = sanitizeTargetSets(nextConfig.targetSets, DEFAULT_TARGET_SETS);
     }
 
-    const { phase, remaining } = getInitialRemaining(nextConfig);
+    const { remaining } = getInitialRemaining(nextConfig);
     set({
       config: nextConfig,
-      // if idle, update display to reflect new config
-      ...(get().phase === "idle" ? { phase, remainingSec: remaining, phaseDuration: remaining } : {}),
+      // Selalu refresh preview display saat tidak running (setConfig sudah
+      // early-return saat isRunning). Phase dipertahankan "idle" sebagai status
+      // preview agar tiap klik preset / edit manual langsung tercermin di <h1>.
+      phase: "idle",
+      remainingSec: remaining,
+      phaseDuration: remaining,
     });
   },
 

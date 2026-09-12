@@ -26,7 +26,7 @@ function TimerDisplayImpl({ remainingSec, phase, totalElapsedSec, setsCompleted,
           ? "bg-bauhaus-yellow text-bauhaus-black"
           : "bg-white text-bauhaus-black";
 
-  const nextLabel = phase === "run" ? "JALAN" : phase === "walk" ? "LARI" : phase === "warmup" ? "LARI" : phase === "cooldown" ? "SELESAI" : "-";
+  const nextLabel = phase === "run" ? "JALAN" : phase === "walk" ? "LARI" : phase === "warmup" ? "LARI" : phase === "cooldown" ? "SELESAI" : "MULAI";
 
   return (
     <Card deco={phase === "run" ? "red" : phase === "walk" ? "blue" : "yellow"} className="flex min-h-[42vh] xs:min-h-[45vh] sm:min-h-[50vh] flex-col items-center justify-center p-4 sm:p-8 text-center">

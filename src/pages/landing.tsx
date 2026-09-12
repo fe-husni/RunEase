@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Section } from "@/components/layout/section";
+import { Reveal } from "@/components/layout/reveal";
 import { AppLogo } from "@/components/brand/app-logo";
 import { DotGrid, DecoCircle, DecoSquare } from "@/components/geometric/deco";
 import { Clock, Volume2, Smartphone, ArrowRight, Check, Zap, Trophy } from "lucide-react";
@@ -89,6 +90,7 @@ export default function LandingPage() {
 
       {/* Social Proof - Yellow */}
       <Section color="yellow">
+        <Reveal>
         <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-0 border-0 sm:border-4 sm:border-bauhaus-black bg-transparent sm:bg-white sm:shadow-none shadow-none p-0 sm:p-0">
           {[
             { value: "Tanpa Install", label: "Akses langsung dari browser, hemat memori HP." },
@@ -102,6 +104,7 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
+        </Reveal>
         <p className="mt-3 text-center text-[11px] sm:text-xs font-bold uppercase tracking-widest opacity-60 px-2">Dipakai pelari pemula yang dulu kapok, sekarang ketagihan</p>
       </Section>
 
@@ -140,8 +143,9 @@ export default function LandingPage() {
               img: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=600&auto=format&fit=crop&q=60",
               alt: "Pelari mengecek jam di pergelangan tangan",
             },
-          ].map((f) => (
-            <Card key={f.title} deco={f.color} className="overflow-hidden p-0 text-center">
+          ].map((f, i) => (
+            <Reveal key={f.title} delay={(i % 3) * 80}>
+            <Card deco={f.color} className="overflow-hidden p-0 text-center">
               <div className="h-48 overflow-hidden border-b-4 border-bauhaus-black">
                 <img src={f.img} alt={f.alt} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 hover:scale-105" />
               </div>
@@ -153,6 +157,7 @@ export default function LandingPage() {
                 <p className="mt-2 text-sm font-medium opacity-70">{f.desc}</p>
               </div>
             </Card>
+            </Reveal>
           ))}
         </div>
       </Section>
@@ -164,6 +169,7 @@ export default function LandingPage() {
           <h2 className="mt-3 font-black uppercase tracking-tight text-balance text-xl xs:text-2xl">BUKAN TEORI, SUDAH DICOBA</h2>
         </div>
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Reveal>
           <div className="group relative overflow-hidden border-4 border-bauhaus-black shadow-bauhaus">
             <img
               src="https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&auto=format&fit=crop&q=60"
@@ -176,6 +182,8 @@ export default function LandingPage() {
               <p className="text-xs font-bold uppercase tracking-widest opacity-60">Streak 7 hari terjaga</p>
             </div>
           </div>
+          </Reveal>
+          <Reveal delay={80}>
           <div className="group relative overflow-hidden border-4 border-bauhaus-black shadow-bauhaus sm:translate-y-4">
             <img
               src="https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=600&auto=format&fit=crop&q=60"
@@ -188,6 +196,8 @@ export default function LandingPage() {
               <p className="text-xs font-bold uppercase tracking-widest">Gratis</p>
             </div>
           </div>
+          </Reveal>
+          <Reveal delay={160}>
           <div className="group relative overflow-hidden border-4 border-bauhaus-black shadow-bauhaus">
             <img
               src="https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=600&auto=format&fit=crop&q=60"
@@ -200,6 +210,7 @@ export default function LandingPage() {
               <p className="text-xs font-bold uppercase tracking-widest">Jalan bukan kalah, tapi strategi</p>
             </div>
           </div>
+          </Reveal>
         </div>
       </Section>
 
@@ -233,8 +244,9 @@ export default function LandingPage() {
               img: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=400&auto=format&fit=crop&q=60",
               alt: "Perayaan setelah lari selesai",
             },
-          ].map((s) => (
-            <div key={s.n} className="relative overflow-hidden border-4 border-bauhaus-black bg-white text-bauhaus-black shadow-bauhaus-lg">
+          ].map((s, i) => (
+            <Reveal key={s.n} delay={(i % 3) * 80}>
+            <div className="relative overflow-hidden border-4 border-bauhaus-black bg-white text-bauhaus-black shadow-bauhaus-lg">
               <div className="h-40 overflow-hidden border-b-4 border-bauhaus-black">
                 <img src={s.img} alt={s.alt} loading="lazy" className="h-full w-full object-cover transition-transform hover:scale-105" />
               </div>
@@ -246,6 +258,7 @@ export default function LandingPage() {
                 <p className="mt-1 text-sm font-medium opacity-70">{s.d}</p>
               </div>
             </div>
+            </Reveal>
           ))}
         </div>
       </Section>
@@ -253,6 +266,7 @@ export default function LandingPage() {
       {/* Gamifikasi - White + Image */}
       <Section color="white">
         <div className="grid grid-cols-1 items-center gap-6 sm:gap-8 lg:grid-cols-2">
+          <Reveal>
           <div className="min-w-0">
             <Badge variant="red">Kenapa Ketagihan?</Badge>
             <h2 className="mt-3 font-black uppercase leading-[0.9] tracking-tighter text-balance text-2xl xs:text-3xl sm:text-4xl">
@@ -274,6 +288,8 @@ export default function LandingPage() {
               />
             </div>
           </div>
+          </Reveal>
+          <Reveal delay={120}>
           <div className="grid grid-cols-2 xs:grid-cols-3 gap-2 sm:gap-3">
             {[
               { name: "Langkah Pertama", sub: "Sesi 1" },
@@ -292,11 +308,13 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+          </Reveal>
         </div>
       </Section>
 
       {/* Final CTA - Yellow */}
       <Section color="yellow">
+        <Reveal>
         <div className="relative overflow-hidden border-2 sm:border-4 border-bauhaus-black bg-white p-5 xs:p-8 text-center shadow-bauhaus sm:p-12">
           <DecoSquare className="absolute -right-6 -top-6 opacity-10" size={80} rotate />
           <DecoCircle className="absolute -bottom-6 -left-6 opacity-10" size={80} />
@@ -318,6 +336,7 @@ export default function LandingPage() {
             </Link>
           </div>
         </div>
+        </Reveal>
       </Section>
 
       {/* Footer */}
